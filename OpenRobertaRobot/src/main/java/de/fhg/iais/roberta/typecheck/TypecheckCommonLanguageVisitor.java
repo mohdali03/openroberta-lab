@@ -74,6 +74,7 @@ import de.fhg.iais.roberta.syntax.lang.stmt.WaitTimeStmt;
 import de.fhg.iais.roberta.syntax.sensor.generic.TimerSensor;
 import de.fhg.iais.roberta.typecheck.NepoInfo.Severity;
 import de.fhg.iais.roberta.util.dbc.Assert;
+import de.fhg.iais.roberta.visitor.BaseVisitor;
 import de.fhg.iais.roberta.visitor.lang.ILanguageVisitor;
 
 /**
@@ -82,7 +83,7 @@ import de.fhg.iais.roberta.visitor.lang.ILanguageVisitor;
  * This helper can be used in tests to validate the constraints on blockly toolboxes (generic ones and robot specific ones).
  * </p>
  */
-public class TypecheckCommonLanguageVisitor implements ILanguageVisitor<BlocklyType> {
+public class TypecheckCommonLanguageVisitor extends BaseVisitor<BlocklyType> implements ILanguageVisitor<BlocklyType> {
     /**
      * typecheck an AST. This is done by a visitor, which is an instance of this class<br>
      *
