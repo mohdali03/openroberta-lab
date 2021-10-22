@@ -107,9 +107,8 @@
       </value>
     </block>
   </category>
-  <category name="TOOLBOX_SENSOR" svg="true">
-    
-  </category>
+  <!-- <category name="TOOLBOX_SENSOR" svg="true">
+  </category> -->
   <category name="TOOLBOX_CONTROL" svg="true">
         <block type="robControls_if" />
         <block type="robControls_ifElse" />

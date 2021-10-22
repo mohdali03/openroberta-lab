@@ -1,3 +1,42 @@
 <block_set xmlns="http://de.fhg.iais.roberta.blockly" robottype="mbot2" xmlversion="3.1" description="" tags="">
-    
+    <instance x="100" y="90">
+        <block type="robConf_gyro" id="1" intask="true" deletable="false">
+            <field name="NAME">_G</field>
+        </block>
+    </instance>
+    <instance x="120" y="70">
+        <block type="robConf_ultrasonic" id ="2" intask="true" deletable="false">
+            <field name="NAME">_U</field>
+        </block>
+    </instance> 
+    <instance x="100" y="120">
+        <block type="robConf_joystick" id="2" intask="true" deletable="false">
+        <field name="NAME">_J</field>
+        </block>
+    </instance>
+    <instance x="100" y="211">
+        <block type="robConf_key" id="2" intask="true" deletable="false">
+            <field name="NAME">A</field>
+        </block>
+    </instance>
+    <instance x="100" y="241">
+        <block type="robConf_key" id="2" intask="true" deletable="false">
+            <field name="NAME">B</field>
+        </block>
+    </instance>
+    <instance x="80" y="268">
+        <block type="robConf_accelerometer" id="3" intask="true" deletable="false">
+            <field name="NAME">_A</field>
+        </block>
+    </instance>
+    <instance x="197" y="190">
+        <block type="robConf_light" id="4" intask="true" deletable="false">
+            <field name="NAME">_L</field>
+        </block>
+    </instance>
+    <instance x="197" y="162">
+        <block type="robConf_sound" id="5" intask="true" deletable="false">
+            <field name="NAME">_S</field>
+        </block>
+    </instance>
 </block_set>
