@@ -66,7 +66,6 @@ let cmdPropToORB = {
 };
 
 var substrationValueEncoder = 0;
-var substrationValueGyro = 0;
 
 //Noch mode prüfen
 function isSensorValueValid(id: number): boolean {
@@ -147,17 +146,13 @@ function getSensorValueGyro(id: number, slot: string) {
         if (isSensorValueValid(id) == true) {
             if (propFromORB.Sensor[id].value[0] <= 32767) {
                 if (slot == 'angle') {
-                    var y = propFromORB.Sensor[id].value[0];
-                    var x = propFromORB.Sensor[id].value[1];
-                    return y - substrationValueGyro;
+                    return propFromORB.Sensor[id].value[0];
                 }
                 return propFromORB.Sensor[id].value;
             } else {
                 propFromORB.Sensor[id].value[0] = propFromORB.Sensor[id].value[0] - 65536;
                 if (slot == 'angle') {
-                    var y = propFromORB.Sensor[id].value[0];
-                    var x = propFromORB.Sensor[id].value[1];
-                    return y + substrationValueGyro;
+                    return propFromORB.Sensor[id].value[0];;
                 }
                 return propFromORB.Sensor[id].value;
             }
@@ -181,16 +176,15 @@ function getSensorValueTouch(id: number) {
 }
 
 function getEncoderValue(port: number, mode: any) {
-    var value = 0;
     if (mode == 'degree') {
-        return (value = (getMotorPos(port) - substrationValueEncoder) / 2.7);
+        return ((getMotorPos(port) - substrationValueEncoder) / 2.7);
     }
     if (mode == 'rotation') {
-        return (value = getMotorPos(port) / 1000);
+        return (getMotorPos(port) / 1000);
     }
     if (mode == 'distance') {
         var circumference = 2 * 3.14 * (driveConfig.wheelDiameter / 2);
-        return (value = (getMotorPos(port) * circumference) / 1000);
+        return ((getMotorPos(port) * circumference) / 1000);
     }
 }
 
@@ -707,7 +701,7 @@ export class RobotOrbBehaviour extends ARobotBehaviour {
 
     public gyroReset(port: number): void {
         U.debug('gyroReset for ' + port);
-        substrationValueGyro = getSensorValue(port);
+        configSensor(port,1, 0, 0)
     }
 
     public lightAction(_mode: string, _color: string, _port: string): void {
@@ -715,14 +709,6 @@ export class RobotOrbBehaviour extends ARobotBehaviour {
     }
 
     public playFileAction(_file: string): number {
-        throw new Error('Method not implemented.');
-    }
-
-    public _setVolumeAction(_volume: number): void {
-        throw new Error('Method not implemented.');
-    }
-
-    public _getVolumeAction(_s: State): void {
         throw new Error('Method not implemented.');
     }
 

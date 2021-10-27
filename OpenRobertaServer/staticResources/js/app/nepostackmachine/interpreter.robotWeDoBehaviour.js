@@ -220,16 +220,25 @@ define(["require", "exports", "./interpreter.aRobotBehaviour", "./interpreter.co
             if (duration !== undefined) {
                 if (durationType === C.DEGREE || durationType === C.DISTANCE || durationType === C.ROTATIONS) {
                     // if durationType is defined, then duration must be defined, too. Thus, it is never 'undefined' :-)
-                    var rotationPerSecond = C.MAX_ROTATION * Math.abs(speed) / 100.0;
-                    duration = duration / rotationPerSecond * 1000;
+                    var rotationPerSecond = (C.MAX_ROTATION * Math.abs(speed)) / 100.0;
+                    duration = (duration / rotationPerSecond) * 1000;
                     if (durationType === C.DEGREE) {
                         duration /= 360.0;
                     }
                 }
             }
-            var durText = duration === undefined ? ' w.o. duration' : (' for ' + duration + ' msec');
+            var durText = duration === undefined ? ' w.o. duration' : ' for ' + duration + ' msec';
             U.debug(robotText + ' motor speed ' + speed + durText);
-            var cmd = { 'target': 'wedo', 'type': 'command', 'actuator': 'motor', 'brickid': brickid, 'action': 'on', 'id': port, 'direction': speed < 0 ? 1 : 0, 'power': Math.abs(speed) };
+            var cmd = {
+                target: 'wedo',
+                type: 'command',
+                actuator: 'motor',
+                brickid: brickid,
+                action: 'on',
+                id: port,
+                direction: speed < 0 ? 1 : 0,
+                power: Math.abs(speed),
+            };
             this.btInterfaceFct(cmd);
             return duration !== undefined ? 0 : duration;
         };
@@ -334,7 +343,7 @@ define(["require", "exports", "./interpreter.aRobotBehaviour", "./interpreter.co
             }
         };
         RobotWeDoBehaviour.prototype.setConfiguration = function (configuration) {
-            throw new Error("Method not implemented.");
+            throw new Error('Method not implemented.');
         };
         return RobotWeDoBehaviour;
     }(interpreter_aRobotBehaviour_1.ARobotBehaviour));

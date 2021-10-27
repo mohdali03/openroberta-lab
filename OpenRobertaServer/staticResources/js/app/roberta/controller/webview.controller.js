@@ -121,7 +121,7 @@ define(["require", "exports", "guiState.controller", "interpreter.interpreter", 
             case 'wedo':
                 theRobotBehaviour = new WEDO_B.RobotWeDoBehaviour(jsToAppInterface, jsToDisplay);
                 break;
-            case "orb":
+            case 'orb':
                 theRobotBehaviour = new ORB_B.RobotOrbBehaviour(jsToAppInterface, jsToDisplay);
                 break;
             default:

@@ -168,7 +168,7 @@ define(["require", "exports", "./interpreter.aRobotBehaviour", "./interpreter.co
             U.info(' assert action ' + robotText);
         };
         RobotWeDoBehaviourTest.prototype.setConfiguration = function (configuration) {
-            throw new Error("Method not implemented.");
+            throw new Error('Method not implemented.');
         };
         return RobotWeDoBehaviourTest;
     }(interpreter_aRobotBehaviour_1.ARobotBehaviour));
