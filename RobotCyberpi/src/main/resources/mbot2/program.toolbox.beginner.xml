@@ -110,10 +110,28 @@
                         </block>
                     </value>
                 </block>
-                <block type="robActions_println"/>
+                <block type="robActions_println">
+                    <value name="OUT">
+                        <block type="text">
+                            <field name="TEXT">Hallo</field>
+                        </block>
+                    </value>
+                </block>
+                <block type="robActions_display_set_colour">
+                    <value name="COLOR">
+                        <block type="robColour_picker">
+                            <field name="COLOUR">#cc0000</field>
+                        </block>
+                    </value>
+                </block>
                 <block type="robActions_display_clear"/>
-                <block type="robActions_display_set_colour"/>
-                <block type="robActions_serial_print"/>
+                <block type="robActions_serial_print">
+                    <value name="OUT">
+                        <block type="text">
+                            <field name="TEXT">Hallo</field>
+                        </block>
+                    </value>
+                </block>
             </category>
             <category name="TOOLBOX_SOUND" svg="true">
                 <block type="mbedActions_play_tone">
@@ -137,6 +155,7 @@
                 </block>
                 <block type="robActions_play_getVolume"/>
                 <block type="mbedActions_play_note"/>
+                <block type="robActions_play_recording"/>
             </category>
             <category name="TOOLBOX_LIGHT" svg="true">
                 <block type="robActions_led_on">
@@ -169,7 +188,6 @@
                     </value>
                 </block>
                 <block type="robActions_quadRGB_led_off"/>
-                <block type="robActions_brickLight_on"/>
             </category>
         </category>
         <category name="TOOLBOX_SENSOR" svg="true">
@@ -177,6 +195,7 @@
             <block type="robSensors_quadrgb_getSample"/>
             <block type="robSensors_line_getSample"/>
             <block type="robSensors_sound_getSample"/>
+            <block type="robSensors_sound_record"/>
             <block type="robSensors_joystick_getSample"/>
             <block type="robSensors_key_getSample"/>
             <block type="robSensors_light_getSample"/>
@@ -185,7 +204,6 @@
             <block type="robSensors_accelerometer_getSample"/>
             <block type="robSensors_timer_getSample"/>
             <block type="robSensors_timer_reset"/>
-            <block type="robSensors_sound_record"/>
             <block type="robSensors_encoder_getSample"/>
             <block type="robSensors_encoder_reset"/>
         </category>
@@ -340,31 +358,53 @@
     </category>
         <category name="TOOLBOX_COLOUR" svg="true">
             <block type="robColour_picker">
-                <field name="COLOUR">#585858</field>
+                <field name="COLOUR">#9b9b9b</field>
             </block>
             <block type="robColour_picker">
-                <field name="COLOUR">#000000</field>
+                <field name="COLOUR">#d0021b</field>
             </block>
             <block type="robColour_picker">
-                <field name="COLOUR">#0057a6</field>
+                <field name="COLOUR">#f8e71c</field>
             </block>
             <block type="robColour_picker">
-                <field name="COLOUR">#00642e</field>
+                <field name="COLOUR">#7ed321</field>
             </block>
             <block type="robColour_picker">
-                <field name="COLOUR">#f7d117</field>
+                <field name="COLOUR">#50e3c2</field>
             </block>
             <block type="robColour_picker">
-                <field name="COLOUR">#b30006</field>
+                <field name="COLOUR">#4a90e2</field>
             </block>
             <block type="robColour_picker">
-                <field name="COLOUR">#FFFFFF</field>
+                <field name="COLOUR">#bd10e0</field>
             </block>
             <block type="robColour_picker">
-                <field name="COLOUR">#532115</field>
+                <field name="COLOUR">#F9F9F9</field>
+            </block>
+            <block type="mbedColour_rgb">
+                <value name="RED">
+                    <block type="math_number">
+                        <field name="NUM">255</field>
+                    </block>
+                </value>
+                <value name="GREEN">
+                    <block type="math_number">
+                        <field name="NUM">20</field>
+                    </block>
+                </value>
+                <value name="BLUE">
+                    <block type="math_number">
+                        <field name="NUM">150</field>
+                    </block>
+                </value>
+                <value name="WHITE">
+                    <block type="math_number">
+                        <field name="NUM">255</field>
+                    </block>
+                </value>
             </block>
         </category> 
         <category name="TOOLBOX_VARIABLE" custom="VARIABLE" svg="true">
             </category>
-        <category name="TOOLBOX_PROCEDURE" custom="PROCEDURE" svg="true"></category>
+    <category name="TOOLBOX_PROCEDURE" custom="PROCEDURE" svg="true"/>
     </toolbox_set>
