@@ -65,7 +65,14 @@ let cmdPropToORB = {
     },
 };
 
-var substrationValueEncoder = 0;
+let resetVlueEncoder = {
+    Motor : [
+        {reset: 0},
+        {reset: 0},
+        {reset: 0},
+        {reset: 0},
+    ]
+}
 
 //Noch mode prüfen
 function isSensorValueValid(id: number): boolean {
@@ -176,15 +183,16 @@ function getSensorValueTouch(id: number) {
 }
 
 function getEncoderValue(port: number, mode: any) {
+    var value = getMotorPos(port) - resetVlueEncoder.Motor[port].reset
     if (mode == 'degree') {
-        return ((getMotorPos(port) - substrationValueEncoder) / 2.7);
+        return (value / 2.7);
     }
     if (mode == 'rotation') {
-        return (getMotorPos(port) / 1000);
+        return (value / 1000);
     }
     if (mode == 'distance') {
         var circumference = 2 * 3.14 * (driveConfig.wheelDiameter / 2);
-        return ((getMotorPos(port) * circumference) / 1000);
+        return ((value* circumference) / 1000);
     }
 }
 
@@ -696,7 +704,7 @@ export class RobotOrbBehaviour extends ARobotBehaviour {
 
     public encoderReset(port: any): void {
         U.debug('encoderReset for ' + port);
-        substrationValueEncoder = getMotorPos(this.mappPortMotor(port));
+        resetVlueEncoder.Motor[this.mappPortMotor(port)].reset = getMotorPos(this.mappPortMotor(port))
     }
 
     public gyroReset(port: number): void {
