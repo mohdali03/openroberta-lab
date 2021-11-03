@@ -87,6 +87,7 @@ public final class CalliopeSimValidatorAndCollectorVisitor extends MbedValidator
         addWarningToPhrase(accelerometerSensor, "SIM_BLOCK_NOT_SUPPORTED");
         return super.visitAccelerometerSensor(accelerometerSensor);
     }
+
     @Override
     public Void visitGyroSensor(GyroSensor<Void> gyroSensor) {
         addWarningToPhrase(gyroSensor, "SIM_BLOCK_NOT_SUPPORTED");

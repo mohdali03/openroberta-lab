@@ -1,7 +1,7 @@
 {
 	"@metadata": {
 		"author": "Ellen Spertus <ellen.spertus@gmail.com>",
-		"lastupdated": "2021-11-12 13:02:00.467951",
+		"lastupdated": "2021-11-03 13:19:40.005736",
 		"locale": "en",
 		"messagedocumentation" : "qqq"
 	},
@@ -661,6 +661,7 @@
 	"TOOLBOX_ANIMATION": "Animation",
 	"TOOLBOX_VISION": "Vision",
 	"TOOLBOX_CLEANING": "Cleaning",
+	"TOOLBOX_DIALOG": "Dialog",
 	"MENU_EDIT": "edit",
 	"MENU_ROBOT": "robot",
 	"MENU_HELP": "help",
@@ -1334,8 +1335,7 @@
 	"SENSOR_UNIT_CM": "cm",
 	"SENSOR_UNIT_MM": "mm",
 	"SENSOR_UNIT_DEGREE": "°",
-	"SENSOR_UNIT_DEGREE_CELSIUS": "°C",
-	"SENSOR_UNIT_PASCAL": "hPa",
+	"SENSOR_UNIT_PASCAL": "Pascal",
 	"SENSOR_UNIT_MS": "ms",
 	"SENSOR_UNIT_MILLIG": "milli-g",
 	"SENSOR_UNIT_OMEGA": "ω",
