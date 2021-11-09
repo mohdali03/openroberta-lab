@@ -109,7 +109,7 @@ public class CurveAction<V> extends Action<V> {
         Phrase<V> left;
         Phrase<V> right;
         BlocklyDropdownFactory factory = helper.getDropdownFactory();
-        fields = Jaxb2Ast.extractFields(block, (short) 1);
+        fields = Jaxb2Ast.extractFields(block, (short) 2);
         mode = Jaxb2Ast.extractField(fields, BlocklyConstants.DIRECTION);
 
         if ( !block.getType().equals(BlocklyConstants.ROB_ACTIONS_MOTOR_DIFF_CURVE) ) {

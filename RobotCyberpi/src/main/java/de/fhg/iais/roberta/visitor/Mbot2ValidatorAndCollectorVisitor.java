@@ -28,6 +28,8 @@ import de.fhg.iais.roberta.syntax.action.sound.ToneAction;
 import de.fhg.iais.roberta.syntax.action.sound.VolumeAction;
 import de.fhg.iais.roberta.syntax.lang.expr.Expr;
 import de.fhg.iais.roberta.syntax.lang.expr.NumConst;
+import de.fhg.iais.roberta.syntax.sensor.generic.EncoderSensor;
+import de.fhg.iais.roberta.syntax.sensor.generic.KeysSensor;
 import de.fhg.iais.roberta.syntax.sensor.generic.TimerSensor;
 import de.fhg.iais.roberta.visitor.validate.CommonNepoValidatorAndCollectorVisitor;
 import de.fhg.iais.roberta.syntax.action.motor.differential.DriveAction;
@@ -41,6 +43,16 @@ public class Mbot2ValidatorAndCollectorVisitor extends CommonNepoValidatorAndCol
 
     @Override
     public Void visitClearDisplayAction(ClearDisplayAction<Void> clearDisplayAction) {
+        return null;
+    }
+
+    @Override
+    public Void visitKeysSensor(KeysSensor<Void> keysSensor) {
+        return null;
+    }
+
+    @Override
+    public Void visitEncoderSensor(EncoderSensor<Void> encoderSensor) {
         return null;
     }
 

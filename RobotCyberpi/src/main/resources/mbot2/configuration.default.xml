@@ -38,14 +38,16 @@
             <instance x="100" y="250">
                 <block type="robConf_key" intask="true" id= "7" deletable="false">
                     <field name="NAME">A</field>
-                </block>
-            </instance>
-            <instance x="100" y="280">
-                <block type="robConf_key" intask="true" id= "8" deletable="false">
-                    <field name="NAME">B</field>
+                    <field name="PIN1">A</field>
                 </block>
             </instance>
             <instance x="100" y="310">
+                <block type="robConf_key" intask="true" id= "8" deletable="false">
+                    <field name="NAME">B</field>
+                    <field name="PIN1">B</field>
+                </block>
+            </instance>
+            <instance x="100" y="370">
                 <block type="robConf_joystick" intask="true" id= "9" deletable="false">
                     <field name="NAME">_J</field>
                 </block>

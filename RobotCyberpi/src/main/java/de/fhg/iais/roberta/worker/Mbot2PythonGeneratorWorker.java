@@ -11,6 +11,6 @@ public final class Mbot2PythonGeneratorWorker extends AbstractLanguageGeneratorW
 
     @Override
     protected AbstractLanguageVisitor getVisitor(Project project, ClassToInstanceMap<IProjectBean> beans) {
-        return new Mbot2PythonVisitor(project.getProgramAst().getTree(), project.getLanguage(), beans);
+        return new Mbot2PythonVisitor(project.getProgramAst().getTree(), project.getLanguage(), beans, project.getConfigurationAst());
     }
 }
