@@ -8,10 +8,13 @@ import de.fhg.iais.roberta.bean.CodeGeneratorSetupBean;
 import de.fhg.iais.roberta.bean.IProjectBean;
 import de.fhg.iais.roberta.components.ConfigurationAst;
 import de.fhg.iais.roberta.components.ConfigurationComponent;
+import de.fhg.iais.roberta.inter.mode.action.IDriveDirection;
 import de.fhg.iais.roberta.inter.mode.action.ILanguage;
+import de.fhg.iais.roberta.syntax.MotionParam;
 import de.fhg.iais.roberta.syntax.MotorDuration;
 import de.fhg.iais.roberta.syntax.Phrase;
 import de.fhg.iais.roberta.syntax.action.display.ClearDisplayAction;
+import de.fhg.iais.roberta.syntax.action.mbot2.PlayRecordingAction;
 import de.fhg.iais.roberta.syntax.action.display.ShowTextAction;
 import de.fhg.iais.roberta.syntax.action.light.LightAction;
 import de.fhg.iais.roberta.syntax.action.light.LightStatusAction;
@@ -69,29 +72,6 @@ public final class Mbot2PythonVisitor extends AbstractPythonVisitor implements I
 
 
     @Override
-    public Void visitKeysSensor(KeysSensor<Void> keysSensor) {
-        this.sb.append("cyberpi.controller.is_press(");
-        String port = keysSensor.getUserDefinedPort();
-        ConfigurationComponent configurationComponent = this.configurationAst.getConfigurationComponent(port);
-        String pin1 = configurationComponent.getProperty("PIN1");
-
-        this.sb.append("\"").append(pin1).append("\"");
-        this.sb.append(")");
-        return null;
-    }
-
-    @Override
-    public Void visitEncoderSensor(EncoderSensor<Void> encoderSensor) {
-        String port = getPortFromConfig(encoderSensor.getUserDefinedPort());
-        if ( encoderSensor.getSensorMetaDataBean().getMode().equals("RESET") ) {
-            this.sb.append("mbot2.EM_reset_angle(\"").append(port).append("\") ");
-        } else {
-            this.sb.append("mbot2.EM_get_angle(\"").append(port).append("\")");
-        }
-        return null;
-    }
-
-    @Override
     protected void generateProgramPrefix(boolean withWrapping) {
         if ( !withWrapping ) {
             return;
@@ -101,7 +81,27 @@ public final class Mbot2PythonVisitor extends AbstractPythonVisitor implements I
         this.sb.append("import math");
         nlIndent();
         this.sb.append("import time"); //TODO maybe only if time is required
+        nlIndent();
+        nlIndent();
+        appendRobotVariables();
     }
+
+    private void appendRobotVariables() {
+        ConfigurationComponent diffDrive = getDiffDrive();
+        if ( diffDrive != null ) {
+            double circumference = Double.parseDouble(diffDrive.getComponentProperties().get("BRICK_WHEEL_DIAMETER")) * Math.PI;
+            double trackWidth = Double.parseDouble(diffDrive.getComponentProperties().get("BRICK_TRACK_WIDTH"));
+            this.sb.append("_trackWidth = ");
+            this.sb.append(trackWidth);
+            nlIndent();
+            this.sb.append("_circumference = ");
+            this.sb.append(circumference);
+            nlIndent();
+            this.sb.append("_diffPortsSwapped = ");
+            this.sb.append(this.rightMotorPort.equals("EM1") ? "True" : "False");
+        }
+    }
+
 
     @Override
     public Void visitMainTask(MainTask<Void> mainTask) {
@@ -157,7 +157,20 @@ public final class Mbot2PythonVisitor extends AbstractPythonVisitor implements I
     }
 
     @Override
+    public Void visitKeysSensor(KeysSensor<Void> keysSensor) {
+        this.sb.append("cyberpi.controller.is_press(");
+        String port = keysSensor.getUserDefinedPort();
+        ConfigurationComponent configurationComponent = this.configurationAst.getConfigurationComponent(port);
+        String pin1 = configurationComponent.getProperty("PIN1");
+
+        this.sb.append("\"").append(pin1).append("\"");
+        this.sb.append(")");
+        return null;
+    }
+
+    @Override
     public Void visitClearDisplayAction(ClearDisplayAction<Void> clearDisplayAction) {
+        this.sb.append("cyberpi.console.clear()");
         return null;
     }
 
@@ -171,33 +184,13 @@ public final class Mbot2PythonVisitor extends AbstractPythonVisitor implements I
         return null;
     }
 
-    @Override
-    public Void visitMotorGetPowerAction(MotorGetPowerAction<Void> motorGetPowerAction) {
-        return null;
-    }
-
     private String getPortFromConfig(String name) {
         ConfigurationComponent block = configurationAst.getConfigurationComponent(name);
         return block.getComponentProperties().get("PORT1");
     }
 
     @Override
-    public Void visitMotorOnAction(MotorOnAction<Void> motorOnAction) {
-        float speed = getSpeed(motorOnAction.getParam().getSpeed());
-        MotorDuration<Void> distance = motorOnAction.getParam().getDuration();
-        String port = getPortFromConfig(motorOnAction.getUserDefinedPort());
-        if ( distance == null ) {
-            sb.append("mbot2.EM_set_speed(");
-            sb.append(speed);
-            sb.append(", \"").append(port).append("\")");
-        } else {
-            float angle = Float.parseFloat(((NumConst) distance.getValue()).getValue());
-            if ( distance.getType().toString().equals("ROTATIONS") ) {
-                angle *= 360;
-            }
-            sb.append("mbot2.EM_turn(");
-            sb.append(angle).append(", ").append(speed).append(", \"").append(port).append("\")");
-        }
+    public Void visitMotorGetPowerAction(MotorGetPowerAction<Void> motorGetPowerAction) {
         return null;
     }
 
@@ -216,56 +209,198 @@ public final class Mbot2PythonVisitor extends AbstractPythonVisitor implements I
     @Override
     public Void visitShowTextAction(ShowTextAction<Void> showTextAction) {
 
-        String text = ((StringConst) showTextAction.msg).getValue();
-        int lines = Integer.parseInt(((NumConst) showTextAction.y).getValue());
-        int rows = Integer.parseInt(((NumConst) showTextAction.x).getValue());
+        if ( showTextAction.y.getVarType().toString().equals("NOTHING") || showTextAction.x.getVarType().toString().equals("NOTHING") ) {
+            String text = ((StringConst<Void>) showTextAction.msg).getValue();
+            appendPrintlnAction(text);
+        } else {
+            appendShowTextAction(showTextAction);
+        }
+        return null;
+    }
+
+    private void appendPrintlnAction(String text) {
+        this.sb.append("cyberpi.console.println(\"");
+        this.sb.append(text);
+        this.sb.append("\")");
+    }
+
+    private void appendShowTextAction(ShowTextAction<Void> showTextAction) {
+        String text = ((StringConst<Void>) showTextAction.msg).getValue();
+        int lines = Integer.parseInt(((NumConst<Void>) showTextAction.y).getValue());
+        int rows = Integer.parseInt(((NumConst<Void>) showTextAction.x).getValue());
 
         int xPixel = 8 * rows + 5;
-        int yPixel = 17* lines;
+        int yPixel = 17 * lines;
         this.sb.append("cyberpi.display.show_label(");
         this.sb.append("\"").append(text).append("\", ");
         this.sb.append("16, ");
         this.sb.append("int(").append(xPixel).append("), ");
         this.sb.append("int(").append(yPixel).append("))");
+    }
+
+    @Override
+    public Void visitPlayRecordingAction(PlayRecordingAction<Void> playRecordingAction) {
+        this.sb.append("cyberpi.audio.play_record()");
+        return null;
+    }
+
+    @Override
+    public Void visitEncoderSensor(EncoderSensor<Void> encoderSensor) {
+        String port = getPortFromConfig(encoderSensor.getUserDefinedPort());
+        if ( encoderSensor.getSensorMetaDataBean().getMode().equals("RESET") ) {
+            this.sb.append("mbot2.EM_reset_angle(\"").append(port).append("\") ");
+        } else {
+            this.sb.append("mbot2.EM_get_angle(\"").append(port).append("\")");
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitMotorOnAction(MotorOnAction<Void> motorOnAction) {
+        MotorDuration<Void> distance = motorOnAction.getParam().getDuration();
+        String port = getPortFromConfig(motorOnAction.getUserDefinedPort());
+        if ( distance == null ) {
+            this.sb.append("mbot2.EM_set_speed(");
+            appendSpeed(motorOnAction.getParam());
+            this.sb.append(", \"").append(port).append("\")");
+        } else {
+            this.sb.append("mbot2.EM_turn((");
+            distance.getValue().accept(this);
+            this.sb.append(")");
+            if ( distance.getType().toString().equals("ROTATIONS") ) {
+                this.sb.append(" * 360");
+            }
+            this.sb.append(", ");
+            appendSpeed(motorOnAction.getParam());
+            this.sb.append(", \"").append(port).append("\")");
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitDriveAction(DriveAction<Void> driveAction) {
+        if ( driveAction.getParam().getDuration() != null ) {
+            appendCurveForAction(driveAction.getParam(), driveAction.getParam(), driveAction.getParam().getDuration(), driveAction.getDirection());
+        } else {
+            appendCurveAction(driveAction.getParam(), driveAction.getParam(), driveAction.getDirection());
+        }
 
         return null;
     }
 
-    private void appendDriveAction(float speedEm1, float speedEm2) {
-        sb.append("mbot2.drive_speed(");
-        if ( rightMotorPort.equals("EM1") ) { // the right motor needs to be inverted due to construction of the mbot2
-            sb.append(-speedEm1).append(", ").append(speedEm2).append(")");
+    @Override
+    public Void visitMotorDriveStopAction(MotorDriveStopAction<Void> stopAction) {
+        this.sb.append("mbot2.EM_stop()");
+        return null;
+    }
+
+    @Override
+    public Void visitTurnAction(TurnAction<Void> turnAction) {
+        String direction = turnAction.getDirection().toString().toLowerCase();
+
+        if ( turnAction.getParam().getDuration() != null ) {
+            appendTurnForAction(turnAction, direction);
         } else {
-            sb.append(speedEm1).append(", ").append(-speedEm2).append(")");
+            appendTurnAction(turnAction, direction);
+        }
+        return null;
+    }
+
+    private void appendTurnAction(TurnAction<Void> turnAction, String direction) {
+        String multi = "";
+        String optBracket = "";
+        if ( direction.equals("left") ) {
+            multi = "-(";
+            optBracket = ")";
+        }
+        sb.append("mbot2.drive_speed(").append(multi);
+        turnAction.getParam().getSpeed().accept(this);
+        sb.append(optBracket).append(", ").append(multi);
+        turnAction.getParam().getSpeed().accept(this);
+        sb.append(optBracket).append(")");
+
+    }
+
+    private void appendTurnForAction(TurnAction<Void> turnAction, String direction) {
+        this.sb.append("mbot2.turn(");
+        String multi = "";
+        String optBracket = "";
+        if ( direction.equals("left") ) {
+            multi = "-(";
+            optBracket = ")";
+        }
+        sb.append(multi);
+        turnAction.getParam().getDuration().getValue().accept(this);
+        sb.append(optBracket);
+        this.sb.append(", ");
+        turnAction.getParam().getSpeed().accept(this);
+        this.sb.append(")");
+    }
+
+    @Override
+    public Void visitCurveAction(CurveAction<Void> curveAction) {
+        MotorDuration<Void> duration = curveAction.getParamLeft().getDuration();
+        if ( duration != null ) {
+            appendCurveForAction(curveAction.getParamLeft(), curveAction.getParamRight(), curveAction.getParamLeft().getDuration(), curveAction.getDirection());
+        } else {
+            appendCurveAction(curveAction.getParamLeft(), curveAction.getParamRight(), curveAction.getDirection());
+        }
+
+        return null;
+    }
+
+    private void appendCurveForAction(MotionParam<Void> speedL, MotionParam<Void> speedR, MotorDuration<Void> distance, IDriveDirection direction) {
+        boolean isForward = direction.toString().equals(SC.FOREWARD);
+        this.sb
+            .append(this.getBean(CodeGeneratorSetupBean.class).getHelperMethodGenerator().getHelperMethodName(Mbot2Methods.DIFFDRIVEFOR));
+        if ( isForward ) {
+            this.sb.append("(");
+            speedL.getSpeed().accept(this);
+            this.sb.append(", ");
+            speedR.getSpeed().accept(this);
+            this.sb.append(", ");
+            distance.getValue().accept(this);
+            this.sb.append(")");
+        } else {
+            this.sb.append("(-(");
+            speedL.getSpeed().accept(this);
+            this.sb.append("), -(");
+            speedR.getSpeed().accept(this);
+            this.sb.append("), ");
+            distance.getValue().accept(this);
+            this.sb.append(")");
         }
     }
 
-    private void appendDriveAction(float speedEm1, float speedEm2, float distance) {
-        appendDriveAction(speedEm1, speedEm2);
-        nlIndent();
-        sb.append("time.sleep(");
-        sb.append(calculateWaitTime(speedEm1, speedEm2, distance));
-        sb.append(")");
-        nlIndent();
-        sb.append("mbot2.EM_stop()");
-    }
-
-    private double calculateWaitTime(float speedEm1, float speedEm2, float distance) {
-        ConfigurationComponent diffDrive = getDiffDrive();
-        double circumference = Double.parseDouble(diffDrive.getComponentProperties().get("BRICK_WHEEL_DIAMETER")) * Math.PI;
-        double trackWidth = Double.parseDouble(diffDrive.getComponentProperties().get("BRICK_TRACK_WIDTH"));
-        double speedL;
-        double speedR;
-        if ( rightMotorPort.equals("EM1") ) {
-            speedR = speedEm1 * circumference / 60;
-            speedL = speedEm2 * circumference / 60;
+    private void appendCurveAction(MotionParam<Void> speedLeft, MotionParam<Void> speedRight, IDriveDirection direction) {
+        this.sb.append("mbot2.drive_speed(");
+        boolean isForward = direction.toString().equals(SC.FOREWARD);
+        if ( isForward ) {
+            if ( isMotorSwapped() ) {
+                this.sb.append("-(");
+                speedRight.getSpeed().accept(this);
+                this.sb.append("),");
+                speedLeft.getSpeed().accept(this);
+            } else {
+                speedLeft.getSpeed().accept(this);
+                this.sb.append(", -(");
+                speedRight.getSpeed().accept(this);
+                this.sb.append(")");
+            }
         } else {
-            speedL = speedEm1 * circumference / 60;
-            speedR = speedEm2 * circumference / 60;
+            if ( isMotorSwapped() ) {
+                speedRight.getSpeed().accept(this);
+                this.sb.append(", -(");
+                speedLeft.getSpeed().accept(this);
+                this.sb.append(")");
+            } else {
+                this.sb.append("-(");
+                speedLeft.getSpeed().accept(this);
+                this.sb.append("),");
+                speedRight.getSpeed().accept(this);
+            }
         }
-        double r = ((speedL + speedR) * trackWidth) / 2;
-        double w = (speedR / speedL) / trackWidth;
-        return Math.abs(distance / (r * w));
+        this.sb.append(")");
     }
 
     private ConfigurationComponent getDiffDrive() {
@@ -288,102 +423,14 @@ public final class Mbot2PythonVisitor extends AbstractPythonVisitor implements I
         }
     }
 
-    @Override
-    public Void visitDriveAction(DriveAction<Void> driveAction) {
-        String direction = driveAction.getDirection().toString().equals(SC.FOREWARD) ? "forward" : "backward";
-        if ( driveAction.getParam().getDuration() != null ) {
-            appendMotorOnForAction(driveAction, direction);
-        } else {
-            appendMotorOnAction(driveAction, direction);
-        }
-
-        return null;
+    private boolean isMotorSwapped() {
+        return this.rightMotorPort.equals("EM1");
     }
 
-    private void appendMotorOnAction(DriveAction<Void> driveAction, String direction) {
-        float speed = getSpeed(driveAction.getParam().getSpeed());
-        if ( direction.equals("backward") ) {
-            speed = -speed;
-        }
-        appendDriveAction(speed, speed);
-    }
-
-    private void appendMotorOnForAction(DriveAction<Void> driveAction, String direction) {
-        this.sb.append("mbot2.");
-        this.sb.append("straight(");
-        if ( (direction.equals("backward") && rightMotorPort.equals("EM2")) || (direction.equals("forward") && rightMotorPort.equals("EM1")) ) {
-            this.sb.append("-");
-        }
-        driveAction.getParam().getDuration().getValue().accept(this);
-        this.sb.append(", ");
-        this.sb.append(getSpeed(driveAction.getParam().getSpeed()));
-        this.sb.append(")");
-    }
-
-    private <V> float getSpeed(Expr<V> speedExpression) {
-        return Float.parseFloat(((NumConst<Void>) speedExpression).getValue()) * 2;
-    }
-
-    @Override
-    public Void visitMotorDriveStopAction(MotorDriveStopAction<Void> stopAction) {
-        this.sb.append("mbot2.EM_stop()");
-        return null;
-    }
-
-    @Override
-    public Void visitTurnAction(TurnAction<Void> turnAction) {
-        String direction = turnAction.getDirection().toString().toLowerCase();
-
-        if ( turnAction.getParam().getDuration() != null ) {
-            appendTurnForAction(turnAction, direction);
-        } else {
-            appendTurnAction(turnAction, direction);
-        }
-        return null;
-    }
-
-    private void appendTurnAction(TurnAction<Void> turnAction, String direction) {
-        float speed = getSpeed(turnAction.getParam().getSpeed());
-        if ( direction.equals("left") ) {
-            speed = -speed;
-        }
-        sb.append("mbot2.drive_speed(").append(speed).append(", ").append(speed).append(")");
-    }
-
-    private void appendTurnForAction(TurnAction<Void> turnAction, String direction) {
-        this.sb.append("mbot2.turn(");
-        if ( direction.equals("left") ) {
-            this.sb.append("-");
-        }
-        turnAction.getParam().getDuration().getValue().accept(this);
-        this.sb.append(", ");
-        this.sb.append(getSpeed(turnAction.getParam().getSpeed()));
-        this.sb.append(")");
-    }
-
-    @Override
-    public Void visitCurveAction(CurveAction<Void> curveAction) {
-        int direction = curveAction.getDirection().toString().equals(SC.FOREWARD) ? 1 : -1;
-        float speedL = direction * getSpeed(curveAction.getParamLeft().getSpeed());
-        float speedR = direction * getSpeed(curveAction.getParamRight().getSpeed());
-        float speedEm1;
-        float speedEm2;
-        if ( rightMotorPort.equals("EM1") ) {
-            speedEm1 = speedR;
-            speedEm2 = speedL;
-        } else {
-            speedEm1 = speedL;
-            speedEm2 = speedR;
-        }
-        MotorDuration duration = curveAction.getParamLeft().getDuration();
-        float distance;
-        if ( duration != null ) {
-            distance = Float.parseFloat(((NumConst) duration.getValue()).getValue());
-            appendDriveAction(speedEm1, speedEm2, distance);
-        } else {
-            appendDriveAction(speedEm1, speedEm2);
-        }
-        return null;
+    private <V> void appendSpeed(MotionParam<Void> motionParam) {
+        this.sb.append("(");
+        motionParam.getSpeed().accept(this);
+        this.sb.append(") * 2");
     }
 
     @Override
@@ -428,7 +475,7 @@ public final class Mbot2PythonVisitor extends AbstractPythonVisitor implements I
     @Override
     public Void visitWaitTimeStmt(WaitTimeStmt<Void> waitTimeStmt) {
         this.sb.append("time.sleep(");
-        double time = Double.parseDouble(((NumConst) waitTimeStmt.getTime()).getValue()) / 100;
+        float time = Float.parseFloat(((NumConst<Void>) waitTimeStmt.getTime()).getValue()) / 100;
         this.sb.append(time);
 
         this.sb.append(")");

@@ -5,6 +5,7 @@ import java.util.Map;
 import com.google.common.collect.ClassToInstanceMap;
 
 import de.fhg.iais.roberta.bean.IProjectBean;
+import de.fhg.iais.roberta.bean.UsedMethodBean;
 import de.fhg.iais.roberta.components.ConfigurationAst;
 import de.fhg.iais.roberta.components.ConfigurationComponent;
 import de.fhg.iais.roberta.syntax.MotionParam;
@@ -12,6 +13,7 @@ import de.fhg.iais.roberta.syntax.MotorDuration;
 import de.fhg.iais.roberta.syntax.Phrase;
 import de.fhg.iais.roberta.syntax.action.Action;
 import de.fhg.iais.roberta.syntax.action.display.ClearDisplayAction;
+import de.fhg.iais.roberta.syntax.action.mbot2.PlayRecordingAction;
 import de.fhg.iais.roberta.syntax.action.display.ShowTextAction;
 import de.fhg.iais.roberta.syntax.action.light.LightAction;
 import de.fhg.iais.roberta.syntax.action.light.LightStatusAction;
@@ -53,6 +55,11 @@ public class Mbot2ValidatorAndCollectorVisitor extends CommonNepoValidatorAndCol
 
     @Override
     public Void visitEncoderSensor(EncoderSensor<Void> encoderSensor) {
+        return null;
+    }
+
+    @Override
+    public Void visitPlayRecordingAction(PlayRecordingAction<Void> playRecordingAction) {
         return null;
     }
 
@@ -170,6 +177,9 @@ public class Mbot2ValidatorAndCollectorVisitor extends CommonNepoValidatorAndCol
 
     @Override
     public Void visitCurveAction(CurveAction<Void> curveAction) {
+        if ( curveAction.getParamLeft().getDuration() != null ) {
+            this.getBuilder(UsedMethodBean.Builder.class).addUsedMethod(Mbot2Methods.DIFFDRIVEFOR);
+        }
         return null;
     }
 

@@ -214,7 +214,7 @@ block:
   SHOW_TEXT_ACTION:
       category: ACTOR
       implementor: de.fhg.iais.roberta.syntax.action.display.ShowTextAction
-      type: [robActions_display_text,robActions_display_text_i2c,robActions_display_text_oledssd1306i2c]
+      type: [robActions_display_text,robActions_display_text_i2c,robActions_display_text_oledssd1306i2c,robActions_println]
   TONE_ACTION:
       category: ACTOR
       implementor: de.fhg.iais.roberta.syntax.action.sound.ToneAction

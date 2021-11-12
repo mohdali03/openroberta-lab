@@ -4,11 +4,10 @@ import com.google.common.collect.ClassToInstanceMap;
 
 import de.fhg.iais.roberta.bean.IProjectBean;
 import de.fhg.iais.roberta.components.ConfigurationAst;
-import de.fhg.iais.roberta.syntax.action.Action;
 
 import de.fhg.iais.roberta.visitor.validate.AbstractBrickValidatorVisitor;
 
-public final class Mbot2ConfigurationValidatorVisitor extends AbstractBrickValidatorVisitor implements IMbot2Visitor<Void> {
+public final class Mbot2ConfigurationValidatorVisitor extends AbstractBrickValidatorVisitor {
 
     private boolean main = false;
 

@@ -1,10 +1,14 @@
 include: "classpath:/robotCommon.yml"
 block:
+  PLAY_RECORDING_ACTION:
+      category: ACTOR
+      implementor: de.fhg.iais.roberta.syntax.action.mbot2.PlayRecordingAction
+      type: [robActions_play_recording]
 
 configuration:
   MBUILD_PORT: [robConf_mbuild_port]
   MBUILD_ULTRASONIC2: [robBrick_mbuild_ultrasonic2]
-  MBUILD_QUADRGB: [ robBrick_mbuild_quadrgb]
+  MBUILD_QUADRGB: [robBrick_mbuild_quadrgb]
 
 mode:
 

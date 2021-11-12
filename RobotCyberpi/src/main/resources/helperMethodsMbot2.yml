@@ -1,0 +1,18 @@
+include: "classpath:/common.methods.yml"
+
+## FunctionNames
+
+DIFFDRIVEFOR:
+  PYTHON: |
+    def _diffDriveFor(rpmL, rpmR, distance):
+        speedL = rpmL * _circumference / 60
+        speedR = rpmR * _circumference / 60
+        r = (speedL + speedR) * _trackWidth / 2
+        w = speedR / speedL / _trackWidth
+        timeToWait = math.abs(distance / (r * w))
+        if _diffPortsSwapped:
+            mbot2.drive_speed(-rpmR, RpmL)
+        else:
+            mbot2.drive_speed(rpmL, -rpmR)
+        time.sleep(timeToWait)
+        mbot2.EM_stop()
