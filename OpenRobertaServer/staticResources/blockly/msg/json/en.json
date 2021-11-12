@@ -1,7 +1,7 @@
 {
 	"@metadata": {
 		"author": "Ellen Spertus <ellen.spertus@gmail.com>",
-		"lastupdated": "2021-11-08 10:47:19.398357",
+		"lastupdated": "2021-11-12 15:06:39.006058",
 		"locale": "en",
 		"messagedocumentation" : "qqq"
 	},
@@ -1559,6 +1559,8 @@
 	"BRICKNAME_WEDO": "WeDo",
 	"STEPS_PER_REVOLUTION": "steps per revolution",
 	"ROTATIONS_PER_MINUTE": "rpm",
+	"ROUNDS_PER_MINUTE_SPEED": "speed RPM",
+	"MOTOR_SPEED_UNREGULATED": "power %",
 	"ACTION_SERIAL_PRINT": "show on Serial Monitor",
 	"ACTION_SERIAL_PRINT_TOOLTIP": "Show data on the Serial Monitor. You can find the Serial Monitor in the USB Programm on top, under View.",
 	"TO": "to",

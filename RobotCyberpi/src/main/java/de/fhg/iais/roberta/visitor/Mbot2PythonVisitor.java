@@ -261,7 +261,7 @@ public final class Mbot2PythonVisitor extends AbstractPythonVisitor implements I
         String port = getPortFromConfig(motorOnAction.getUserDefinedPort());
         if ( distance == null ) {
             this.sb.append("mbot2.EM_set_speed(");
-            appendSpeed(motorOnAction.getParam());
+            motorOnAction.getParam().getSpeed().accept(this);
             this.sb.append(", \"").append(port).append("\")");
         } else {
             this.sb.append("mbot2.EM_turn((");
@@ -271,7 +271,7 @@ public final class Mbot2PythonVisitor extends AbstractPythonVisitor implements I
                 this.sb.append(" * 360");
             }
             this.sb.append(", ");
-            appendSpeed(motorOnAction.getParam());
+            motorOnAction.getParam().getSpeed().accept(this);
             this.sb.append(", \"").append(port).append("\")");
         }
         return null;
@@ -425,12 +425,6 @@ public final class Mbot2PythonVisitor extends AbstractPythonVisitor implements I
 
     private boolean isMotorSwapped() {
         return this.rightMotorPort.equals("EM1");
-    }
-
-    private <V> void appendSpeed(MotionParam<Void> motionParam) {
-        this.sb.append("(");
-        motionParam.getSpeed().accept(this);
-        this.sb.append(") * 2");
     }
 
     @Override
