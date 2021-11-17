@@ -13,6 +13,7 @@ import de.fhg.iais.roberta.syntax.MotorDuration;
 import de.fhg.iais.roberta.syntax.Phrase;
 import de.fhg.iais.roberta.syntax.action.Action;
 import de.fhg.iais.roberta.syntax.action.display.ClearDisplayAction;
+import de.fhg.iais.roberta.syntax.action.mbot2.DisplaySetColourAction;
 import de.fhg.iais.roberta.syntax.action.mbot2.PlayRecordingAction;
 import de.fhg.iais.roberta.syntax.action.display.ShowTextAction;
 import de.fhg.iais.roberta.syntax.action.light.LightAction;
@@ -33,6 +34,8 @@ import de.fhg.iais.roberta.syntax.lang.expr.NumConst;
 import de.fhg.iais.roberta.syntax.sensor.generic.EncoderSensor;
 import de.fhg.iais.roberta.syntax.sensor.generic.KeysSensor;
 import de.fhg.iais.roberta.syntax.sensor.generic.TimerSensor;
+import de.fhg.iais.roberta.syntax.sensor.generic.UltrasonicSensor;
+import de.fhg.iais.roberta.syntax.sensor.mbot2.QuadRGBSensor;
 import de.fhg.iais.roberta.visitor.validate.CommonNepoValidatorAndCollectorVisitor;
 import de.fhg.iais.roberta.syntax.action.motor.differential.DriveAction;
 
@@ -60,6 +63,21 @@ public class Mbot2ValidatorAndCollectorVisitor extends CommonNepoValidatorAndCol
 
     @Override
     public Void visitPlayRecordingAction(PlayRecordingAction<Void> playRecordingAction) {
+        return null;
+    }
+
+    @Override
+    public Void visitDisplaySetColourAction(DisplaySetColourAction<Void> displaySetColourAction) {
+        return null;
+    }
+
+    @Override
+    public Void visitUltrasonicSensor(UltrasonicSensor<Void> ultrasonicSensor) {
+        return null;
+    }
+
+    @Override
+    public Void visitQuadRGBSensor(QuadRGBSensor<Void> quadRGBSensor) {
         return null;
     }
 

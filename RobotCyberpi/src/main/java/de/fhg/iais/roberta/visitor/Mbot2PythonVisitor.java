@@ -1,6 +1,8 @@
 package de.fhg.iais.roberta.visitor;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.google.common.collect.ClassToInstanceMap;
 
@@ -8,12 +10,14 @@ import de.fhg.iais.roberta.bean.CodeGeneratorSetupBean;
 import de.fhg.iais.roberta.bean.IProjectBean;
 import de.fhg.iais.roberta.components.ConfigurationAst;
 import de.fhg.iais.roberta.components.ConfigurationComponent;
+import de.fhg.iais.roberta.components.ConfigurationComponentList;
 import de.fhg.iais.roberta.inter.mode.action.IDriveDirection;
 import de.fhg.iais.roberta.inter.mode.action.ILanguage;
 import de.fhg.iais.roberta.syntax.MotionParam;
 import de.fhg.iais.roberta.syntax.MotorDuration;
 import de.fhg.iais.roberta.syntax.Phrase;
 import de.fhg.iais.roberta.syntax.action.display.ClearDisplayAction;
+import de.fhg.iais.roberta.syntax.action.mbot2.DisplaySetColourAction;
 import de.fhg.iais.roberta.syntax.action.mbot2.PlayRecordingAction;
 import de.fhg.iais.roberta.syntax.action.display.ShowTextAction;
 import de.fhg.iais.roberta.syntax.action.light.LightAction;
@@ -26,11 +30,13 @@ import de.fhg.iais.roberta.syntax.action.motor.differential.CurveAction;
 import de.fhg.iais.roberta.syntax.action.motor.differential.DriveAction;
 import de.fhg.iais.roberta.syntax.action.motor.differential.MotorDriveStopAction;
 import de.fhg.iais.roberta.syntax.action.motor.differential.TurnAction;
+import de.fhg.iais.roberta.syntax.action.serial.SerialWriteAction;
 import de.fhg.iais.roberta.syntax.action.sound.PlayFileAction;
 import de.fhg.iais.roberta.syntax.action.sound.PlayNoteAction;
 import de.fhg.iais.roberta.syntax.action.sound.ToneAction;
 import de.fhg.iais.roberta.syntax.action.sound.VolumeAction;
 import de.fhg.iais.roberta.syntax.lang.blocksequence.MainTask;
+import de.fhg.iais.roberta.syntax.lang.expr.ColorConst;
 import de.fhg.iais.roberta.syntax.lang.expr.ConnectConst;
 import de.fhg.iais.roberta.syntax.lang.expr.Expr;
 import de.fhg.iais.roberta.syntax.lang.expr.NumConst;
@@ -41,6 +47,8 @@ import de.fhg.iais.roberta.syntax.lang.stmt.WaitTimeStmt;
 import de.fhg.iais.roberta.syntax.sensor.generic.EncoderSensor;
 import de.fhg.iais.roberta.syntax.sensor.generic.KeysSensor;
 import de.fhg.iais.roberta.syntax.sensor.generic.TimerSensor;
+import de.fhg.iais.roberta.syntax.sensor.generic.UltrasonicSensor;
+import de.fhg.iais.roberta.syntax.sensor.mbot2.QuadRGBSensor;
 import de.fhg.iais.roberta.visitor.lang.codegen.prog.AbstractPythonVisitor;
 import de.fhg.iais.roberta.syntax.SC;
 
@@ -76,12 +84,11 @@ public final class Mbot2PythonVisitor extends AbstractPythonVisitor implements I
         if ( !withWrapping ) {
             return;
         }
-        this.sb.append("import cyberpi, mbot2");
+        this.sb.append("import cyberpi, mbot2, mbuild");
         nlIndent();
         this.sb.append("import math");
         nlIndent();
         this.sb.append("import time"); //TODO maybe only if time is required
-        nlIndent();
         nlIndent();
         appendRobotVariables();
     }
@@ -175,6 +182,14 @@ public final class Mbot2PythonVisitor extends AbstractPythonVisitor implements I
     }
 
     @Override
+    public Void visitSerialWriteAction(SerialWriteAction<Void> serialWriteAction) {
+        this.sb.append("print(");
+        serialWriteAction.getValue().accept(this);
+        this.sb.append(")");
+        return null;
+    }
+
+    @Override
     public Void visitLightAction(LightAction<Void> lightAction) {
         return null;
     }
@@ -210,30 +225,28 @@ public final class Mbot2PythonVisitor extends AbstractPythonVisitor implements I
     public Void visitShowTextAction(ShowTextAction<Void> showTextAction) {
 
         if ( showTextAction.y.getVarType().toString().equals("NOTHING") || showTextAction.x.getVarType().toString().equals("NOTHING") ) {
-            String text = ((StringConst<Void>) showTextAction.msg).getValue();
-            appendPrintlnAction(text);
+            appendPrintlnAction(showTextAction);
         } else {
             appendShowTextAction(showTextAction);
         }
         return null;
     }
 
-    private void appendPrintlnAction(String text) {
-        this.sb.append("cyberpi.console.println(\"");
-        this.sb.append(text);
-        this.sb.append("\")");
+    private void appendPrintlnAction(ShowTextAction<Void> showTextAction) {
+        this.sb.append("cyberpi.console.println(");
+        showTextAction.msg.accept(this);
+        this.sb.append(")");
     }
 
     private void appendShowTextAction(ShowTextAction<Void> showTextAction) {
-        String text = ((StringConst<Void>) showTextAction.msg).getValue();
         int lines = Integer.parseInt(((NumConst<Void>) showTextAction.y).getValue());
         int rows = Integer.parseInt(((NumConst<Void>) showTextAction.x).getValue());
 
         int xPixel = 8 * rows + 5;
         int yPixel = 17 * lines;
         this.sb.append("cyberpi.display.show_label(");
-        this.sb.append("\"").append(text).append("\", ");
-        this.sb.append("16, ");
+        showTextAction.msg.accept(this);
+        this.sb.append(", 16, ");
         this.sb.append("int(").append(xPixel).append("), ");
         this.sb.append("int(").append(yPixel).append("))");
     }
@@ -242,6 +255,79 @@ public final class Mbot2PythonVisitor extends AbstractPythonVisitor implements I
     public Void visitPlayRecordingAction(PlayRecordingAction<Void> playRecordingAction) {
         this.sb.append("cyberpi.audio.play_record()");
         return null;
+    }
+
+    @Override
+    public Void visitDisplaySetColourAction(DisplaySetColourAction<Void> displaySetColourAction) {
+        this.sb.append("cyberpi.display.set_brush(");
+        displaySetColourAction.getColor().accept(this);
+        this.sb.append(")");
+        return null;
+    }
+
+    @Override
+    public Void visitUltrasonicSensor(UltrasonicSensor<Void> ultrasonicSensor) {
+        int index = getSensorNumber("MBUILD_ULTRASONIC2", ultrasonicSensor.getUserDefinedPort());
+        this.sb.append("ultrasonic2.get(").append(index).append(")");
+        return null;
+    }
+
+    @Override
+    public Void visitQuadRGBSensor(QuadRGBSensor<Void> quadRGBSensor) {
+        int index = getSensorNumber("MBUILD_QUADRGB", quadRGBSensor.getUserDefinedPort());
+        String mode = quadRGBSensor.getMode();
+        switch ( mode ) {
+            case "LINE":
+                this.sb.append("mbuild.quad_rgb_sensor.get_line_sta(\"all\" ").append(index).append(")");
+                break;
+            case SC.COLOUR:
+                this.sb.append("mbuild.quad_rgb_sensor.get_color_sta(").append("\"").append(quadRGBSensor.getSlot()).append("\", ").append(index).append(")");
+                break;
+            case SC.AMBIENTLIGHT:
+                this.sb.append("mbuild.quad_rgb_sensor.get_light(").append("\"").append(quadRGBSensor.getSlot()).append("\", ").append(index).append(")");
+                break;
+            case SC.RGB:
+                this.sb.append("[").append(getRGBString("red", index, quadRGBSensor)).append(", ")
+                    .append(getRGBString("green", index, quadRGBSensor)).append(", ").append(getRGBString("blue", index, quadRGBSensor))
+                    .append("]");
+                break;
+        }
+        return null;
+    }
+
+    private String getRGBString(String colour, int index, QuadRGBSensor<Void> quadRGBSensor) {
+        return "mbuild.quad_rgb_sensor.get_" + colour + "(\"" + quadRGBSensor.getSlot() + "\", " + index + ")";
+    }
+
+    private ConfigurationComponentList getMbuildPort() {
+        for ( Map.Entry<String, ConfigurationComponent> entry : configurationAst.getConfigurationComponents().entrySet() ) {
+            ConfigurationComponent component = entry.getValue();
+            if ( component.getComponentType().equals("MBUILD_PORT") ) {
+                return (ConfigurationComponentList) component;
+            }
+        }
+        return null; //no Mbuild_port in config this should never happen
+    }
+
+    private List<ConfigurationComponent> getMbuildModules() {
+        ConfigurationComponentList mbuildPort = getMbuildPort();
+        if(mbuildPort != null){
+            return mbuildPort.getSubComponents().get("MBUILDSENSOR");
+        }
+        return new ArrayList<>();
+    }
+
+    private int getSensorNumber(String sensorName, String userDefinedName) {
+        int index = 0;
+        for ( ConfigurationComponent sensor : getMbuildModules() ) {
+            if ( sensor.getComponentType().equals(sensorName) ) {
+                index++;
+            }
+            if ( sensor.getUserDefinedPortName().equals(userDefinedName) ) {
+                break;
+            }
+        }
+        return index; // if index == 0 Sensor is not in the configuration
     }
 
     @Override
@@ -476,5 +562,10 @@ public final class Mbot2PythonVisitor extends AbstractPythonVisitor implements I
         return null;
     }
 
+    @Override
+    public Void visitColorConst(ColorConst<Void> colorConst) {
+        this.sb.append(colorConst.getRedChannelInt()).append(", ").append(colorConst.getGreenChannelInt()).append(", ").append(colorConst.getBlueChannelInt());
+        return null;
+    }
 
 }

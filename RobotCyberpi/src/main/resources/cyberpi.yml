@@ -5,6 +5,16 @@ block:
       implementor: de.fhg.iais.roberta.syntax.action.mbot2.PlayRecordingAction
       type: [robActions_play_recording]
 
+  DISPLAY_SET_COLOUR_ACTION:
+      category: ACTOR
+      implementor: de.fhg.iais.roberta.syntax.action.mbot2.DisplaySetColourAction
+      type: [robactions_display_set_colour]
+
+  QUAD_COLOR_SENSING:
+    category: SENSOR
+    implementor: de.fhg.iais.roberta.syntax.sensor.mbot2.QuadRGBSensor
+    type: [robSensors_quadrgb_getSample, robSensors_line_getSample]
+
 configuration:
   MBUILD_PORT: [robConf_mbuild_port]
   MBUILD_ULTRASONIC2: [robBrick_mbuild_ultrasonic2]
