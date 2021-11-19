@@ -30,7 +30,6 @@ let state = new State();
 let linkWidthScale = d3.scale.linear().domain([0, 5]).range([1, 10]).clamp(true);
 let colorScale = d3.scale.linear<string, number>().domain([-1, 0, 1]).range(['#f59322', '#e8eaeb', '#0877bd']).clamp(true);
 
-let boundary: { [id: string]: number[][] } = {};
 let network: nn.Node[][] = null;
 
 function makeGUI() {
@@ -467,7 +466,7 @@ function constructInputIds(): string[] {
     return result;
 }
 
-function reset() {
+export function reset() {
     let suffix = state.numHiddenLayers !== 1 ? 's' : '';
     d3.select('#layers-label').text('Hidden layer' + suffix);
     d3.select('#num-layers').text(state.numHiddenLayers);

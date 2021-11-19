@@ -5,7 +5,7 @@
  */
 define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3"], function (require, exports, nn, neuralnetwork_state_1, d3) {
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.oneStep = exports.runPlayground = void 0;
+    exports.oneStep = exports.runPlayground = exports.reset = void 0;
     var mainWidth;
     var RECT_SIZE = 30;
     var SPACE_BETWEEN_NODES = 90;
@@ -24,7 +24,6 @@ define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3
     var state = new neuralnetwork_state_1.State();
     var linkWidthScale = d3.scale.linear().domain([0, 5]).range([1, 10]).clamp(true);
     var colorScale = d3.scale.linear().domain([-1, 0, 1]).range(['#f59322', '#e8eaeb', '#0877bd']).clamp(true);
-    var boundary = {};
     var network = null;
     function makeGUI() {
         d3.select('#add-layers').on('click', function () {
@@ -434,6 +433,7 @@ define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3
         drawNetwork(network);
         updateUI(true);
     }
+    exports.reset = reset;
     function extractWeights(network) {
         var weightsAllLayers = [];
         if (network != null && network.length > 0) {
