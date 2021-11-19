@@ -1,7 +1,7 @@
 {
 	"@metadata": {
 		"author": "Ellen Spertus <ellen.spertus@gmail.com>",
-		"lastupdated": "2021-11-12 15:06:39.006058",
+		"lastupdated": "2021-11-19 15:38:37.260784",
 		"locale": "en",
 		"messagedocumentation" : "qqq"
 	},
@@ -1346,7 +1346,8 @@
 	"SENSOR_UNIT_CM": "cm",
 	"SENSOR_UNIT_MM": "mm",
 	"SENSOR_UNIT_DEGREE": "°",
-	"SENSOR_UNIT_PASCAL": "Pascal",
+	"SENSOR_UNIT_DEGREE_CELSIUS": "°C",
+	"SENSOR_UNIT_PASCAL": "hPa",
 	"SENSOR_UNIT_MS": "ms",
 	"SENSOR_UNIT_MILLIG": "milli-g",
 	"SENSOR_UNIT_OMEGA": "ω",
