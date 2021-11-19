@@ -109,7 +109,7 @@ public final class Jaxb2ConfigurationAst {
         List<ConfigurationComponent> allComponents = new ArrayList<>();
         for ( Instance instance : instances ) {
             if ( instance.getBlock().size() != 0 && instance.getBlock().get(0).getStatement().size() != 0 ) {
-                allComponents.add(Jaxb2ConfigurationAst.Block2NewConfigComp(instance.getBlock().get(0), factory, instance.getX(), instance.getY()));
+                allComponents.add(Jaxb2ConfigurationAst.block2NewConfigComp(instance.getBlock().get(0), factory, instance.getX(), instance.getY()));
             } else {
                 allComponents.add(Jaxb2ConfigurationAst.instance2NewConfigComp(instance, factory));
             }
@@ -124,7 +124,7 @@ public final class Jaxb2ConfigurationAst {
             .build();
     }
 
-    private static ConfigurationComponent Block2NewConfigComp(Block block, BlocklyDropdownFactory factory, String x, String y) {
+    private static ConfigurationComponent block2NewConfigComp(Block block, BlocklyDropdownFactory factory, String x, String y) {
         String componentType = factory.getConfigurationComponentTypeByBlocklyName(block.getType());
         String userDefinedName = block.getField().get(0).getValue();
         Map<String, String> map = new LinkedHashMap<>();
@@ -149,7 +149,7 @@ public final class Jaxb2ConfigurationAst {
         for ( Statement statement : statements ) {
             List<ConfigurationComponent> subBlocks = new ArrayList<>();
             for ( Block subBlock : statement.getBlock() ) {
-                subBlocks.add(Block2NewConfigComp(subBlock, factory, x, y));
+                subBlocks.add(block2NewConfigComp(subBlock, factory, x, y));
             }
             subcomponents.put(statement.getName(), subBlocks);
         }

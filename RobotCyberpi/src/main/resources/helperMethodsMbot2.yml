@@ -16,3 +16,21 @@ DIFFDRIVEFOR:
             mbot2.drive_speed(rpmL, -rpmR)
         time.sleep(timeToWait)
         mbot2.EM_stop()
+
+GETRGB:
+  PYTHON: |
+    def _getRGB(str):
+        _colors = {
+            "red": (204,0,0),
+            "orange": (255,102,0),
+            "yellow": (255,255,0),
+            "green": (51,204,0),
+            "cyan": (51,255,255),
+            "blue": (51,102,255),
+            "purple": (204,51,204),
+            "white": (255,255,255),
+            "black": (0,0,0)
+        }
+        return _colors[str]
+
+

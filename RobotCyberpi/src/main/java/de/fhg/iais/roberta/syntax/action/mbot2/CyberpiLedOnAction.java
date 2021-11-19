@@ -20,39 +20,38 @@ import de.fhg.iais.roberta.transformer.Jaxb2ProgramAst;
 import de.fhg.iais.roberta.typecheck.BlocklyType;
 import de.fhg.iais.roberta.util.dbc.Assert;
 
-/**
- * This class represents the <b>robactions_display_set_colour</b> block from Blockly into the AST (abstract syntax tree). Object from this class will generate code for
- * stopping every movement of the robot.<br/>
- * <br/>
- */
-public final class DisplaySetColourAction<V> extends Action<V> implements WithUserDefinedPort<V> {
+public class CyberpiLedOnAction<V> extends Action<V> implements WithUserDefinedPort<V> {
     private final Expr<V> color;
     private final String port;
+    private final String led;
 
-    private DisplaySetColourAction(Expr<V> color, BlocklyBlockProperties properties, BlocklyComment comment, String port) {
-        super(BlockTypeContainer.getByName("DISPLAY_SET_COLOUR_ACTION"), properties, comment);
-        setReadOnly();
+    private CyberpiLedOnAction(Expr<V> color, BlocklyBlockProperties properties, BlocklyComment comment, String port, String led) {
+        super(BlockTypeContainer.getByName("CYBERPI_LED_ON_ACTION"), properties, comment);
         Assert.notNull(color);
         Assert.notNull(port);
         this.color = color;
         this.port = port;
-
-
+        this.led = led;
+        setReadOnly();
     }
 
     /**
-     * Creates instance of {@link DisplaySetColourAction}. This instance is read only and can not be modified.
+     * Creates instance of {@link CyberpiLedOnAction}. This instance is read only and can not be modified.
      *
      * @param properties of the block (see {@link BlocklyBlockProperties}),
      * @param comment added from the user,
-     * @return read only object of class {@link DisplaySetColourAction}
+     * @return read only object of class {@link CyberpiLedOnAction}
      */
-    private static <V> DisplaySetColourAction<V> make(Expr<V> color, BlocklyBlockProperties properties, BlocklyComment comment, String port) {
-        return new DisplaySetColourAction<>(color, properties, comment, port);
+    private static <V> CyberpiLedOnAction<V> make(Expr<V> color, BlocklyBlockProperties properties, BlocklyComment comment, String port, String led) {
+        return new CyberpiLedOnAction<>(color, properties, comment, port, led);
     }
 
     public Expr<V> getColor() {
         return this.color;
+    }
+
+    public String getLed(){
+        return this.led;
     }
 
     @Override
@@ -62,7 +61,7 @@ public final class DisplaySetColourAction<V> extends Action<V> implements WithUs
 
     @Override
     public String toString() {
-        return "setDisplayColor [" + this.color + ", " + "]";
+        return "CyberpiLedOn [" + this.color + ", " + this.led + "]";
     }
 
     /**
@@ -74,12 +73,12 @@ public final class DisplaySetColourAction<V> extends Action<V> implements WithUs
      */
     public static <V> Phrase<V> jaxbToAst(Block block, Jaxb2ProgramAst<V> helper) {
         List<Value> values = Jaxb2Ast.extractValues(block, (short) 1);
-        List<Field> fields = Jaxb2Ast.extractFields(block, (short) 1);
+        List<Field> fields = Jaxb2Ast.extractFields(block, (short) 2);
 
         Phrase<V> color = helper.extractValue(values, new ExprParam(BlocklyConstants.COLOR, BlocklyType.COLOR));
         String port = Jaxb2Ast.extractField(fields, BlocklyConstants.ACTORPORT);
-
-        return DisplaySetColourAction.make(Jaxb2Ast.convertPhraseToExpr(color), Jaxb2Ast.extractBlockProperties(block), Jaxb2Ast.extractComment(block), port);
+        String led = Jaxb2Ast.extractField(fields, BlocklyConstants.LED);
+        return CyberpiLedOnAction.make(Jaxb2Ast.convertPhraseToExpr(color), Jaxb2Ast.extractBlockProperties(block), Jaxb2Ast.extractComment(block), port, led);
     }
 
     @Override
@@ -88,6 +87,7 @@ public final class DisplaySetColourAction<V> extends Action<V> implements WithUs
         Ast2Jaxb.setBasicProperties(this, jaxbDestination);
         Ast2Jaxb.addValue(jaxbDestination, BlocklyConstants.COLOR, this.color);
         Ast2Jaxb.addField(jaxbDestination, BlocklyConstants.ACTORPORT, this.port);
+        Ast2Jaxb.addField(jaxbDestination, BlocklyConstants.LED, this.led);
 
         return jaxbDestination;
     }

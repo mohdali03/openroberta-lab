@@ -358,30 +358,33 @@
     </category>
     <category name="TOOLBOX_COLOUR" svg="true">
         <block type="robColour_picker">
-            <field name="COLOUR">#9b9b9b</field>
+            <field name="COLOUR">#cc0000</field>
         </block>
         <block type="robColour_picker">
-            <field name="COLOUR">#d0021b</field>
+            <field name="COLOUR">#ff6600</field>
         </block>
         <block type="robColour_picker">
-            <field name="COLOUR">#f8e71c</field>
+            <field name="COLOUR">#ffff00</field>
         </block>
         <block type="robColour_picker">
-            <field name="COLOUR">#7ed321</field>
+            <field name="COLOUR">#33cc00</field>
         </block>
         <block type="robColour_picker">
-            <field name="COLOUR">#50e3c2</field>
+            <field name="COLOUR">#33ffff</field>
         </block>
         <block type="robColour_picker">
-            <field name="COLOUR">#4a90e2</field>
+            <field name="COLOUR">#3366ff</field>
         </block>
         <block type="robColour_picker">
-            <field name="COLOUR">#bd10e0</field>
+            <field name="COLOUR">#cc33cc</field>
         </block>
         <block type="robColour_picker">
-            <field name="COLOUR">#F9F9F9</field>
+            <field name="COLOUR">#FFFFFF</field>
         </block>
-        <block type="mbedColour_rgb">
+        <block type="robColour_picker">
+            <field name="COLOUR">#000000</field>
+        </block>
+        <block type="naoColour_rgb">
             <value name="RED">
                 <block type="math_number">
                     <field name="NUM">255</field>
@@ -395,11 +398,6 @@
             <value name="BLUE">
                 <block type="math_number">
                     <field name="NUM">150</field>
-                </block>
-            </value>
-            <value name="WHITE">
-                <block type="math_number">
-                    <field name="NUM">255</field>
                 </block>
             </value>
         </block>

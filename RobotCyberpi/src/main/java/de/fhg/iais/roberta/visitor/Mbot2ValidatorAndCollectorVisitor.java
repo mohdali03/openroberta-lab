@@ -5,19 +5,23 @@ import java.util.Map;
 import com.google.common.collect.ClassToInstanceMap;
 
 import de.fhg.iais.roberta.bean.IProjectBean;
-import de.fhg.iais.roberta.bean.UsedMethodBean;
 import de.fhg.iais.roberta.components.ConfigurationAst;
 import de.fhg.iais.roberta.components.ConfigurationComponent;
+import de.fhg.iais.roberta.constants.CyberpiConstants;
 import de.fhg.iais.roberta.syntax.MotionParam;
 import de.fhg.iais.roberta.syntax.MotorDuration;
 import de.fhg.iais.roberta.syntax.Phrase;
 import de.fhg.iais.roberta.syntax.action.Action;
 import de.fhg.iais.roberta.syntax.action.display.ClearDisplayAction;
+import de.fhg.iais.roberta.syntax.action.mbot2.CyberpiLedBrightnessAction;
 import de.fhg.iais.roberta.syntax.action.mbot2.DisplaySetColourAction;
 import de.fhg.iais.roberta.syntax.action.mbot2.PlayRecordingAction;
 import de.fhg.iais.roberta.syntax.action.display.ShowTextAction;
 import de.fhg.iais.roberta.syntax.action.light.LightAction;
 import de.fhg.iais.roberta.syntax.action.light.LightStatusAction;
+import de.fhg.iais.roberta.syntax.action.mbot2.QuadRGBLightOffAction;
+import de.fhg.iais.roberta.syntax.action.mbot2.QuadRGBLightOnAction;
+import de.fhg.iais.roberta.syntax.action.mbot2.Ultrasonic2LEDAction;
 import de.fhg.iais.roberta.syntax.action.motor.MotorGetPowerAction;
 import de.fhg.iais.roberta.syntax.action.motor.MotorOnAction;
 import de.fhg.iais.roberta.syntax.action.motor.MotorSetPowerAction;
@@ -31,8 +35,12 @@ import de.fhg.iais.roberta.syntax.action.sound.ToneAction;
 import de.fhg.iais.roberta.syntax.action.sound.VolumeAction;
 import de.fhg.iais.roberta.syntax.lang.expr.Expr;
 import de.fhg.iais.roberta.syntax.lang.expr.NumConst;
+import de.fhg.iais.roberta.syntax.sensor.generic.AccelerometerSensor;
 import de.fhg.iais.roberta.syntax.sensor.generic.EncoderSensor;
+import de.fhg.iais.roberta.syntax.sensor.generic.GyroSensor;
 import de.fhg.iais.roberta.syntax.sensor.generic.KeysSensor;
+import de.fhg.iais.roberta.syntax.sensor.generic.LightSensor;
+import de.fhg.iais.roberta.syntax.sensor.generic.SoundSensor;
 import de.fhg.iais.roberta.syntax.sensor.generic.TimerSensor;
 import de.fhg.iais.roberta.syntax.sensor.generic.UltrasonicSensor;
 import de.fhg.iais.roberta.syntax.sensor.mbot2.QuadRGBSensor;
@@ -62,12 +70,33 @@ public class Mbot2ValidatorAndCollectorVisitor extends CommonNepoValidatorAndCol
     }
 
     @Override
+    public Void visitSoundSensor(SoundSensor<Void> soundSensor) {
+        return null;
+    }
+
+    @Override
+    public Void visitLightSensor(LightSensor<Void> lightSensor) {
+        return null;
+    }
+
+    @Override
+    public Void visitGyroSensor(GyroSensor<Void> gyroSensor) {
+        return null;
+    }
+
+    @Override
+    public Void visitAccelerometerSensor(AccelerometerSensor<Void> accelerometerSensor) {
+        return null;
+    }
+
+    @Override
     public Void visitPlayRecordingAction(PlayRecordingAction<Void> playRecordingAction) {
         return null;
     }
 
     @Override
     public Void visitDisplaySetColourAction(DisplaySetColourAction<Void> displaySetColourAction) {
+        requiredComponentVisited(displaySetColourAction, displaySetColourAction.getColor());
         return null;
     }
 
@@ -78,6 +107,23 @@ public class Mbot2ValidatorAndCollectorVisitor extends CommonNepoValidatorAndCol
 
     @Override
     public Void visitQuadRGBSensor(QuadRGBSensor<Void> quadRGBSensor) {
+        usedMethodBuilder.addUsedMethod(Mbot2Methods.GETRGB);
+        return null;
+    }
+
+    @Override
+    public Void visitQuadRGBLightOnAction(QuadRGBLightOnAction<Void> quadRGBLightOnAction) {
+        requiredComponentVisited(quadRGBLightOnAction, quadRGBLightOnAction.getColor());
+        return null;
+    }
+
+    @Override
+    public Void visitQuadRGBLightOffAction(QuadRGBLightOffAction<Void> quadRGBLightOffAction) {
+        return null;
+    }
+
+    @Override
+    public Void visitUltrasonic2LEDAction(Ultrasonic2LEDAction<Void> ultrasonic2LEDAction) {
         return null;
     }
 
@@ -88,6 +134,11 @@ public class Mbot2ValidatorAndCollectorVisitor extends CommonNepoValidatorAndCol
 
     @Override
     public Void visitLightStatusAction(LightStatusAction<Void> lightStatusAction) {
+        return null;
+    }
+
+    @Override
+    public Void visitCyberpiLedBrightnessAction(CyberpiLedBrightnessAction<Void> cyberpiLedBrightnessAction) {
         return null;
     }
 
@@ -113,11 +164,18 @@ public class Mbot2ValidatorAndCollectorVisitor extends CommonNepoValidatorAndCol
 
     @Override
     public Void visitShowTextAction(ShowTextAction<Void> showTextAction) {
+        requiredComponentVisited(showTextAction, showTextAction.msg);
+        optionalComponentVisited(showTextAction.x);
+        optionalComponentVisited(showTextAction.y);
+
         return null;
     }
 
     @Override
     public Void visitDriveAction(DriveAction<Void> driveAction) {
+        if ( driveAction.getParam().getDuration() != null ) {
+            usedMethodBuilder.addUsedMethod(Mbot2Methods.DIFFDRIVEFOR);
+        }
         hasDifferentialDriveCheck(driveAction);
         hasEncodersOnDifferentialDriveCheck(driveAction);
         checkAndVisitMotionParam(driveAction, driveAction.getParam());
@@ -136,7 +194,7 @@ public class Mbot2ValidatorAndCollectorVisitor extends CommonNepoValidatorAndCol
     private ConfigurationComponent getDifferentialDrive() {
         Map<String, ConfigurationComponent> configComponents = this.robotConfiguration.getConfigurationComponents();
         for ( ConfigurationComponent component : configComponents.values() ) {
-            if ( component.getComponentType().equals("DIFFERENTIALDRIVE") ) {
+            if ( component.getComponentType().equals(CyberpiConstants.DIFFERENTIALDRIVE) ) {
                 return component;
             }
         }
@@ -146,7 +204,7 @@ public class Mbot2ValidatorAndCollectorVisitor extends CommonNepoValidatorAndCol
     private Void hasEncodersOnDifferentialDriveCheck(Phrase<Void> driveAction) {
         Map<String, ConfigurationComponent> configComponents = this.robotConfiguration.getConfigurationComponents();
         ConfigurationComponent differentialDrive = getDifferentialDrive();
-        if(differentialDrive == null){
+        if ( differentialDrive == null ) {
             //error has no differentialdrive
             addErrorToPhrase(driveAction, "");
             return null;
@@ -172,7 +230,7 @@ public class Mbot2ValidatorAndCollectorVisitor extends CommonNepoValidatorAndCol
         return null;
     }
 
-    protected void checkAndVisitMotionParam(Action<Void> action, MotionParam<Void> param) {
+    private void checkAndVisitMotionParam(Action<Void> action, MotionParam<Void> param) {
         MotorDuration<Void> duration = param.getDuration();
         Expr<Void> speed = param.getSpeed();
 
@@ -185,7 +243,7 @@ public class Mbot2ValidatorAndCollectorVisitor extends CommonNepoValidatorAndCol
     }
 
 
-    protected void checkForZeroSpeed(Action<Void> action, Expr<Void> speed) {
+    private void checkForZeroSpeed(Action<Void> action, Expr<Void> speed) {
         if ( speed.getKind().hasName("NUM_CONST") ) {
             if ( Math.abs(Double.parseDouble(((NumConst<Void>) speed).getValue())) < 1E-7 ) {
                 addWarningToPhrase(action, "MOTOR_SPEED_0");
@@ -196,7 +254,7 @@ public class Mbot2ValidatorAndCollectorVisitor extends CommonNepoValidatorAndCol
     @Override
     public Void visitCurveAction(CurveAction<Void> curveAction) {
         if ( curveAction.getParamLeft().getDuration() != null ) {
-            this.getBuilder(UsedMethodBean.Builder.class).addUsedMethod(Mbot2Methods.DIFFDRIVEFOR);
+            usedMethodBuilder.addUsedMethod(Mbot2Methods.DIFFDRIVEFOR);
         }
         return null;
     }
