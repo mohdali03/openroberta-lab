@@ -10,10 +10,10 @@ define(["require", "exports", "log", "guiState.controller", "neuralnetwork.playg
     function initEvents() {
         $('#tabNN').onWrap('show.bs.tab', function (e) {
             GUISTATE_C.setView('tabNN');
-            extractInputOutputNeuronsFromNNstep();
-            PG.runPlayground();
         }, 'show tabNN');
         $('#tabNN').onWrap('shown.bs.tab', function (e) {
+            extractInputOutputNeuronsFromNNstep();
+            PG.runPlayground(inputNeurons, outputNeurons);
             PG.reset();
         }, 'shown tabNN');
         $('#tabNN').onWrap('hide.bs.tab', function (e) { }, 'hide tabNN');
@@ -23,7 +23,8 @@ define(["require", "exports", "log", "guiState.controller", "neuralnetwork.playg
         inputNeurons = [];
         outputNeurons = [];
         var stepBlockFound = false;
-        for (var block in Blockly.Workspace.getByContainer('blocklyDiv').getAllBlocks()) {
+        for (var _i = 0, _a = Blockly.Workspace.getByContainer('blocklyDiv').getAllBlocks(); _i < _a.length; _i++) {
+            var block = _a[_i];
             if (block.type === 'robActions_NNstep') {
                 if (stepBlockFound) {
                     LOG.error("more than one NNstep block makes no sense");
@@ -34,15 +35,13 @@ define(["require", "exports", "log", "guiState.controller", "neuralnetwork.playg
         }
     }
     function extractInputOutputNeurons(neurons) {
-        for (var block in neurons) {
+        for (var _i = 0, neurons_1 = neurons; _i < neurons_1.length; _i++) {
+            var block = neurons_1[_i];
             if (block.type === 'robActions_inputneuron') {
                 inputNeurons.push(block.getFieldValue("NAME"));
             }
             else if (block.type === 'robActions_outputneuron') {
                 outputNeurons.push(block.getFieldValue("NAME"));
-            }
-            else {
-                LOG.error("in a NNstep block only input and output neurons are allowed");
             }
             var next = block.getChildren();
             if (next) {

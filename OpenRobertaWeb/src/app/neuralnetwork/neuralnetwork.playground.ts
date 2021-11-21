@@ -115,7 +115,6 @@ function drawNode(cx: number, cy: number, nodeId: string, nodeType: NodeType, co
     });
     let activeOrNotClass = state[nodeId] ? 'active' : 'inactive';
     if (nodeType === NodeType.INPUT) {
-        let label = state.inputs[nodeId];
         // Draw the input label.
         let text = nodeGroup.append('text').attr({
             class: 'main-label',
@@ -123,29 +122,18 @@ function drawNode(cx: number, cy: number, nodeId: string, nodeType: NodeType, co
             y: RECT_SIZE / 2,
             'text-anchor': 'end',
         });
-        if (/[_^]/.test(label)) {
-            let myRe = /(.*?)([_^])(.)/g;
-            let myArray;
-            let lastIndex;
-            while ((myArray = myRe.exec(label)) != null) {
-                lastIndex = myRe.lastIndex;
-                let prefix = myArray[1];
-                let sep = myArray[2];
-                let suffix = myArray[3];
-                if (prefix) {
-                    text.append('tspan').text(prefix);
-                }
-                text.append('tspan')
-                    .attr('baseline-shift', sep === '_' ? 'sub' : 'super')
-                    .style('font-size', '9px')
-                    .text(suffix);
-            }
-            if (label.substring(lastIndex)) {
-                text.append('tspan').text(label.substring(lastIndex));
-            }
-        } else {
-            text.append('tspan').text(label);
-        }
+        text.append('tspan').text(nodeId);
+        nodeGroup.classed(activeOrNotClass, true);
+    }
+    if (nodeType === NodeType.OUTPUT) {
+        // Draw the output label.
+        let text = nodeGroup.append('text').attr({
+            class: 'main-label',
+            x: RECT_SIZE + 10,
+            y: RECT_SIZE / 2,
+            'text-anchor': 'end',
+        });
+        text.append('tspan').text(nodeId);
         nodeGroup.classed(activeOrNotClass, true);
     }
     if (nodeType !== NodeType.INPUT) {
@@ -219,26 +207,26 @@ function drawNetwork(network: nn.Node[][]): void {
     let targetIdWithCallout = null;
 
     // Draw the input layer separately.
-    let cx = RECT_SIZE / 2 + 50;
-    let nodeIds = Object.keys(state.inputs);
+    let cxI = RECT_SIZE / 2 + 50;
+    let nodeIds = state.inputs;
     let maxY = nodeIndexScale(nodeIds.length);
     nodeIds.forEach((nodeId, i) => {
         let cy = nodeIndexScale(i) + RECT_SIZE / 2;
-        node2coord[nodeId] = { cx, cy };
-        drawNode(cx, cy, nodeId, NodeType.INPUT, container);
+        node2coord[nodeId] = { cx: cxI, cy: cy };
+        drawNode(cxI, cy, nodeId, NodeType.INPUT, container);
     });
 
     // Draw the intermediate layers, exclude input (id:0) and output (id:numLayers-1)
     for (let layerIdx = 1; layerIdx < numLayers - 1; layerIdx++) {
         let numNodes = network[layerIdx].length;
-        let cx = layerScale(layerIdx) + RECT_SIZE / 2;
+        let cxH = layerScale(layerIdx) + RECT_SIZE / 2;
         maxY = Math.max(maxY, nodeIndexScale(numNodes));
         addPlusMinusControl(layerScale(layerIdx), layerIdx);
         for (let i = 0; i < numNodes; i++) {
             let node = network[layerIdx][i];
             let cy = nodeIndexScale(i) + RECT_SIZE / 2;
-            node2coord[node.id] = { cx, cy };
-            drawNode(cx, cy, node.id, NodeType.HIDDEN, container, node);
+            node2coord[node.id] = { cx: cxH, cy: cy };
+            drawNode(cxH, cy, node.id, NodeType.HIDDEN, container, node);
 
             // Show callout to thumbnails.
             let numNodes = network[layerIdx].length;
@@ -247,7 +235,7 @@ function drawNetwork(network: nn.Node[][]): void {
                 calloutThumb.style({
                     display: null,
                     top: `${20 + 3 + cy}px`,
-                    left: `${cx}px`,
+                    left: `${cxH}px`,
                 });
                 idWithCallout = node.id;
             }
@@ -283,13 +271,13 @@ function drawNetwork(network: nn.Node[][]): void {
     {
         let outputLayer = network[numLayers - 1];
         let numOutputs = outputLayer.length;
-        let cx = width - 3 * RECT_SIZE;
+        let cxO = width - 3 * RECT_SIZE;
         maxY = Math.max(maxY, nodeIndexScale(numOutputs));
         for (let j = 0; j < numOutputs; j++) {
             let node = outputLayer[j];
             let cy = nodeIndexScale(j) + RECT_SIZE / 2;
-            node2coord[node.id] = { cx, cy };
-            drawNode(cx, cy, node.id, NodeType.OUTPUT, container, node);
+            node2coord[node.id] = { cx: cxO, cy: cy };
+            drawNode(cxO, cy, node.id, NodeType.OUTPUT, container, node);
             // Draw links.
             for (let i = 0; i < node.inputLinks.length; i++) {
                 let link = node.inputLinks[i];
@@ -458,14 +446,6 @@ function updateUI(firstStep = false) {
     }
 }
 
-function constructInputIds(): string[] {
-    let result: string[] = [];
-    for (let inputName in state.inputs) {
-        result.push(inputName);
-    }
-    return result;
-}
-
 export function reset() {
     let suffix = state.numHiddenLayers !== 1 ? 's' : '';
     d3.select('#layers-label').text('Hidden layer' + suffix);
@@ -475,7 +455,7 @@ export function reset() {
     let shape = [state.numInputs].concat(state.networkShape).concat([state.numOutputs]);
     let outputActivation = nn.Activations.LINEAR; // was: TANH;
     let oldWeights: number[][][] = extractWeights(network);
-    network = nn.buildNetwork(shape, state.activation, outputActivation, state.regularization, constructInputIds(), state.initZero);
+    network = nn.buildNetwork(shape, state.activation, outputActivation, state.regularization, state.inputs, state.outputs, state.initZero);
     replaceWeights(network, oldWeights);
     drawNetwork(network);
     updateUI(true);
@@ -526,7 +506,8 @@ function replaceWeights(network: nn.Node[][], weightsAllLayers: number[][][]): v
     }
 }
 
-export function runPlayground() {
+export function runPlayground(inputNeurons: string[], outputNeurons: string[]) {
+    state.setInputOutputNeurons(inputNeurons, outputNeurons);
     makeGUI();
     reset();
 }

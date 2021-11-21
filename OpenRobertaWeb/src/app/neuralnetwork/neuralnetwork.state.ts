@@ -65,12 +65,18 @@ export class State {
     collectStats = false;
     numHiddenLayers = 1;
     networkShape: number[] = [3];
-    numInputs = 3;
-    inputs = {
-        i1: 'I_1',
-        i2: 'I_2',
-        i3: 'I_3',
-    };
-    numOutputs = 3;
+
+    numInputs = 0;
+    numOutputs = 0;
+    inputs: string[];
+    outputs: string[];
+
     seed: string;
+
+    setInputOutputNeurons(inputNeurons: string[], outputNeurons: string[]): void {
+        this.numInputs = inputNeurons.length;
+        this.numOutputs = outputNeurons.length;
+        this.inputs = inputNeurons;
+        this.outputs = outputNeurons;
+    }
 }

@@ -57,14 +57,15 @@ define(["require", "exports", "./neuralnetwork.nn"], function (require, exports,
             this.collectStats = false;
             this.numHiddenLayers = 1;
             this.networkShape = [3];
-            this.numInputs = 3;
-            this.inputs = {
-                i1: 'I_1',
-                i2: 'I_2',
-                i3: 'I_3',
-            };
-            this.numOutputs = 3;
+            this.numInputs = 0;
+            this.numOutputs = 0;
         }
+        State.prototype.setInputOutputNeurons = function (inputNeurons, outputNeurons) {
+            this.numInputs = inputNeurons.length;
+            this.numOutputs = outputNeurons.length;
+            this.inputs = inputNeurons;
+            this.outputs = outputNeurons;
+        };
         return State;
     }());
     exports.State = State;

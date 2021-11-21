@@ -101,7 +101,6 @@ define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3
         });
         var activeOrNotClass = state[nodeId] ? 'active' : 'inactive';
         if (nodeType === NodeType.INPUT) {
-            var label = state.inputs[nodeId];
             // Draw the input label.
             var text = nodeGroup.append('text').attr({
                 class: 'main-label',
@@ -109,30 +108,18 @@ define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3
                 y: RECT_SIZE / 2,
                 'text-anchor': 'end',
             });
-            if (/[_^]/.test(label)) {
-                var myRe = /(.*?)([_^])(.)/g;
-                var myArray = void 0;
-                var lastIndex = void 0;
-                while ((myArray = myRe.exec(label)) != null) {
-                    lastIndex = myRe.lastIndex;
-                    var prefix = myArray[1];
-                    var sep = myArray[2];
-                    var suffix = myArray[3];
-                    if (prefix) {
-                        text.append('tspan').text(prefix);
-                    }
-                    text.append('tspan')
-                        .attr('baseline-shift', sep === '_' ? 'sub' : 'super')
-                        .style('font-size', '9px')
-                        .text(suffix);
-                }
-                if (label.substring(lastIndex)) {
-                    text.append('tspan').text(label.substring(lastIndex));
-                }
-            }
-            else {
-                text.append('tspan').text(label);
-            }
+            text.append('tspan').text(nodeId);
+            nodeGroup.classed(activeOrNotClass, true);
+        }
+        if (nodeType === NodeType.OUTPUT) {
+            // Draw the output label.
+            var text = nodeGroup.append('text').attr({
+                class: 'main-label',
+                x: RECT_SIZE + 10,
+                y: RECT_SIZE / 2,
+                'text-anchor': 'end',
+            });
+            text.append('tspan').text(nodeId);
             nodeGroup.classed(activeOrNotClass, true);
         }
         if (nodeType !== NodeType.INPUT) {
@@ -200,25 +187,25 @@ define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3
         var idWithCallout = null;
         var targetIdWithCallout = null;
         // Draw the input layer separately.
-        var cx = RECT_SIZE / 2 + 50;
-        var nodeIds = Object.keys(state.inputs);
+        var cxI = RECT_SIZE / 2 + 50;
+        var nodeIds = state.inputs;
         var maxY = nodeIndexScale(nodeIds.length);
         nodeIds.forEach(function (nodeId, i) {
             var cy = nodeIndexScale(i) + RECT_SIZE / 2;
-            node2coord[nodeId] = { cx: cx, cy: cy };
-            drawNode(cx, cy, nodeId, NodeType.INPUT, container);
+            node2coord[nodeId] = { cx: cxI, cy: cy };
+            drawNode(cxI, cy, nodeId, NodeType.INPUT, container);
         });
         // Draw the intermediate layers, exclude input (id:0) and output (id:numLayers-1)
         for (var layerIdx = 1; layerIdx < numLayers - 1; layerIdx++) {
             var numNodes = network[layerIdx].length;
-            var cx_1 = layerScale(layerIdx) + RECT_SIZE / 2;
+            var cxH = layerScale(layerIdx) + RECT_SIZE / 2;
             maxY = Math.max(maxY, nodeIndexScale(numNodes));
             addPlusMinusControl(layerScale(layerIdx), layerIdx);
             for (var i = 0; i < numNodes; i++) {
                 var node = network[layerIdx][i];
                 var cy = nodeIndexScale(i) + RECT_SIZE / 2;
-                node2coord[node.id] = { cx: cx_1, cy: cy };
-                drawNode(cx_1, cy, node.id, NodeType.HIDDEN, container, node);
+                node2coord[node.id] = { cx: cxH, cy: cy };
+                drawNode(cxH, cy, node.id, NodeType.HIDDEN, container, node);
                 // Show callout to thumbnails.
                 var numNodes_1 = network[layerIdx].length;
                 var nextNumNodes = network[layerIdx + 1].length;
@@ -226,7 +213,7 @@ define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3
                     calloutThumb.style({
                         display: null,
                         top: 20 + 3 + cy + "px",
-                        left: cx_1 + "px",
+                        left: cxH + "px",
                     });
                     idWithCallout = node.id;
                 }
@@ -258,13 +245,13 @@ define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3
         {
             var outputLayer = network[numLayers - 1];
             var numOutputs = outputLayer.length;
-            var cx_2 = width - 3 * RECT_SIZE;
+            var cxO = width - 3 * RECT_SIZE;
             maxY = Math.max(maxY, nodeIndexScale(numOutputs));
             for (var j = 0; j < numOutputs; j++) {
                 var node = outputLayer[j];
                 var cy = nodeIndexScale(j) + RECT_SIZE / 2;
-                node2coord[node.id] = { cx: cx_2, cy: cy };
-                drawNode(cx_2, cy, node.id, NodeType.OUTPUT, container, node);
+                node2coord[node.id] = { cx: cxO, cy: cy };
+                drawNode(cxO, cy, node.id, NodeType.OUTPUT, container, node);
                 // Draw links.
                 for (var i = 0; i < node.inputLinks.length; i++) {
                     var link = node.inputLinks[i];
@@ -413,13 +400,6 @@ define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3
             return n.toFixed(3);
         }
     }
-    function constructInputIds() {
-        var result = [];
-        for (var inputName in state.inputs) {
-            result.push(inputName);
-        }
-        return result;
-    }
     function reset() {
         var suffix = state.numHiddenLayers !== 1 ? 's' : '';
         d3.select('#layers-label').text('Hidden layer' + suffix);
@@ -428,7 +408,7 @@ define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3
         var shape = [state.numInputs].concat(state.networkShape).concat([state.numOutputs]);
         var outputActivation = nn.Activations.LINEAR; // was: TANH;
         var oldWeights = extractWeights(network);
-        network = nn.buildNetwork(shape, state.activation, outputActivation, state.regularization, constructInputIds(), state.initZero);
+        network = nn.buildNetwork(shape, state.activation, outputActivation, state.regularization, state.inputs, state.outputs, state.initZero);
         replaceWeights(network, oldWeights);
         drawNetwork(network);
         updateUI(true);
@@ -480,7 +460,8 @@ define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3
             }
         }
     }
-    function runPlayground() {
+    function runPlayground(inputNeurons, outputNeurons) {
+        state.setInputOutputNeurons(inputNeurons, outputNeurons);
         makeGUI();
         reset();
     }
