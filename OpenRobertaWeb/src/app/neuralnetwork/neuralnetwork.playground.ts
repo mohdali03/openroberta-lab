@@ -131,7 +131,7 @@ function drawNode(cx: number, cy: number, nodeId: string, nodeType: NodeType, co
             class: 'main-label',
             x: RECT_SIZE + 10,
             y: RECT_SIZE / 2,
-            'text-anchor': 'end',
+            'text-anchor': 'start',
         });
         text.append('tspan').text(nodeId);
         nodeGroup.classed(activeOrNotClass, true);

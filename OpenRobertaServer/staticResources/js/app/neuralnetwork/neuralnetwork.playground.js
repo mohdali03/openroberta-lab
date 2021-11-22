@@ -117,7 +117,7 @@ define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3
                 class: 'main-label',
                 x: RECT_SIZE + 10,
                 y: RECT_SIZE / 2,
-                'text-anchor': 'end',
+                'text-anchor': 'start',
             });
             text.append('tspan').text(nodeId);
             nodeGroup.classed(activeOrNotClass, true);
