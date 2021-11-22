@@ -4,7 +4,9 @@ import java.util.List;
 
 import de.fhg.iais.roberta.blockly.generated.Block;
 import de.fhg.iais.roberta.blockly.generated.Field;
+import de.fhg.iais.roberta.blockly.generated.Hide;
 import de.fhg.iais.roberta.blockly.generated.Value;
+import de.fhg.iais.roberta.syntax.BlockType;
 import de.fhg.iais.roberta.syntax.BlockTypeContainer;
 import de.fhg.iais.roberta.syntax.BlocklyBlockProperties;
 import de.fhg.iais.roberta.syntax.BlocklyComment;
@@ -17,6 +19,10 @@ import de.fhg.iais.roberta.transformer.Ast2Jaxb;
 import de.fhg.iais.roberta.transformer.ExprParam;
 import de.fhg.iais.roberta.transformer.Jaxb2Ast;
 import de.fhg.iais.roberta.transformer.Jaxb2ProgramAst;
+import de.fhg.iais.roberta.transformer.NepoField;
+import de.fhg.iais.roberta.transformer.NepoHide;
+import de.fhg.iais.roberta.transformer.NepoPhrase;
+import de.fhg.iais.roberta.transformer.NepoValue;
 import de.fhg.iais.roberta.typecheck.BlocklyType;
 import de.fhg.iais.roberta.util.dbc.Assert;
 
@@ -25,19 +31,23 @@ import de.fhg.iais.roberta.util.dbc.Assert;
  * stopping every movement of the robot.<br/>
  * <br/>
  */
-public final class DisplaySetColourAction<V> extends Action<V> implements WithUserDefinedPort<V> {
-    private final Expr<V> color;
-    private final String port;
+@NepoPhrase(containerType = "DISPLAY_SET_COLOUR_ACTION")
+public class DisplaySetColourAction<V> extends Action<V> implements WithUserDefinedPort<V> {
+    @NepoValue(name = BlocklyConstants.COLOR, type = BlocklyType.COLOR)
+    public final Expr<V> color;
+    @NepoField(name = BlocklyConstants.ACTORPORT, value = BlocklyConstants.EMPTY_PORT)
+    public final String port;
+    @NepoHide
+    public final Hide hide;
 
-    private DisplaySetColourAction(Expr<V> color, BlocklyBlockProperties properties, BlocklyComment comment, String port) {
-        super(BlockTypeContainer.getByName("DISPLAY_SET_COLOUR_ACTION"), properties, comment);
-        setReadOnly();
+    public DisplaySetColourAction(BlockType kind, BlocklyBlockProperties properties, BlocklyComment comment, Expr<V> color, String port, Hide hide) {
+        super(kind, properties, comment);
         Assert.notNull(color);
-        Assert.notNull(port);
+        Assert.nonEmptyString(port);
+        this.hide = hide;
         this.color = color;
         this.port = port;
-
-
+        setReadOnly();
     }
 
     /**
@@ -47,8 +57,8 @@ public final class DisplaySetColourAction<V> extends Action<V> implements WithUs
      * @param comment added from the user,
      * @return read only object of class {@link DisplaySetColourAction}
      */
-    private static <V> DisplaySetColourAction<V> make(Expr<V> color, BlocklyBlockProperties properties, BlocklyComment comment, String port) {
-        return new DisplaySetColourAction<>(color, properties, comment, port);
+    public static <V> DisplaySetColourAction<V> make(BlocklyBlockProperties properties, BlocklyComment comment, Expr<V> color, String port, Hide hide) {
+        return new DisplaySetColourAction<>(BlockTypeContainer.getByName("DISPLAY_SET_COLOUR_ACTION"), properties, comment, color, port, hide);
     }
 
     public Expr<V> getColor() {
@@ -58,37 +68,5 @@ public final class DisplaySetColourAction<V> extends Action<V> implements WithUs
     @Override
     public String getUserDefinedPort() {
         return this.port;
-    }
-
-    @Override
-    public String toString() {
-        return "setDisplayColor [" + this.color + ", " + "]";
-    }
-
-    /**
-     * Transformation from JAXB object to corresponding AST object.
-     *
-     * @param block for transformation
-     * @param helper class for making the transformation
-     * @return corresponding AST object
-     */
-    public static <V> Phrase<V> jaxbToAst(Block block, Jaxb2ProgramAst<V> helper) {
-        List<Value> values = Jaxb2Ast.extractValues(block, (short) 1);
-        List<Field> fields = Jaxb2Ast.extractFields(block, (short) 1);
-
-        Phrase<V> color = helper.extractValue(values, new ExprParam(BlocklyConstants.COLOR, BlocklyType.COLOR));
-        String port = Jaxb2Ast.extractField(fields, BlocklyConstants.ACTORPORT);
-
-        return DisplaySetColourAction.make(Jaxb2Ast.convertPhraseToExpr(color), Jaxb2Ast.extractBlockProperties(block), Jaxb2Ast.extractComment(block), port);
-    }
-
-    @Override
-    public Block astToBlock() {
-        Block jaxbDestination = new Block();
-        Ast2Jaxb.setBasicProperties(this, jaxbDestination);
-        Ast2Jaxb.addValue(jaxbDestination, BlocklyConstants.COLOR, this.color);
-        Ast2Jaxb.addField(jaxbDestination, BlocklyConstants.ACTORPORT, this.port);
-
-        return jaxbDestination;
     }
 }

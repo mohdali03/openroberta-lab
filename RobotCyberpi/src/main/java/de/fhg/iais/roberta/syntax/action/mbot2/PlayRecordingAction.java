@@ -4,6 +4,8 @@ import java.util.List;
 
 import de.fhg.iais.roberta.blockly.generated.Block;
 import de.fhg.iais.roberta.blockly.generated.Field;
+import de.fhg.iais.roberta.blockly.generated.Hide;
+import de.fhg.iais.roberta.syntax.BlockType;
 import de.fhg.iais.roberta.syntax.BlockTypeContainer;
 import de.fhg.iais.roberta.syntax.BlocklyBlockProperties;
 import de.fhg.iais.roberta.syntax.BlocklyComment;
@@ -14,6 +16,9 @@ import de.fhg.iais.roberta.syntax.action.Action;
 import de.fhg.iais.roberta.transformer.Ast2Jaxb;
 import de.fhg.iais.roberta.transformer.Jaxb2Ast;
 import de.fhg.iais.roberta.transformer.Jaxb2ProgramAst;
+import de.fhg.iais.roberta.transformer.NepoField;
+import de.fhg.iais.roberta.transformer.NepoHide;
+import de.fhg.iais.roberta.transformer.NepoPhrase;
 import de.fhg.iais.roberta.util.dbc.Assert;
 
 /**
@@ -21,12 +26,18 @@ import de.fhg.iais.roberta.util.dbc.Assert;
  * stopping every movement of the robot.<br/>
  * <br/>
  */
-public final class PlayRecordingAction<V> extends Action<V> implements WithUserDefinedPort<V> {
-    private final String port;
+@NepoPhrase(containerType = "PLAY_RECORDING_ACTION")
+public class PlayRecordingAction<V> extends Action<V> implements WithUserDefinedPort<V> {
+    @NepoField(name = BlocklyConstants.ACTORPORT, value = BlocklyConstants.EMPTY_PORT)
+    public final String port;
 
-    private PlayRecordingAction(BlocklyBlockProperties properties, BlocklyComment comment, String port) {
-        super(BlockTypeContainer.getByName("PLAY_RECORDING_ACTION"), properties, comment);
-        Assert.notNull(port);
+    @NepoHide
+    public final Hide hide;
+
+    public PlayRecordingAction(BlockType kind, BlocklyBlockProperties properties, BlocklyComment comment, String port, Hide hide) {
+        super(kind, properties, comment);
+        Assert.nonEmptyString(port);
+        this.hide = hide;
         this.port = port;
         setReadOnly();
     }
@@ -38,39 +49,12 @@ public final class PlayRecordingAction<V> extends Action<V> implements WithUserD
      * @param comment added from the user,
      * @return read only object of class {@link PlayRecordingAction}
      */
-    private static <V> PlayRecordingAction<V> make(BlocklyBlockProperties properties, BlocklyComment comment, String port) {
-        return new PlayRecordingAction<>(properties, comment, port);
+    public static <V> PlayRecordingAction<V> make(BlocklyBlockProperties properties, BlocklyComment comment, String port, Hide hide) {
+        return new PlayRecordingAction<>(BlockTypeContainer.getByName("DISPLAY_SET_COLOUR_ACTION"), properties, comment, port, hide);
     }
 
     @Override
     public String getUserDefinedPort() {
         return this.port;
-    }
-
-    @Override
-    public String toString() {
-        return "PlayRecording []";
-    }
-
-    /**
-     * Transformation from JAXB object to corresponding AST object.
-     *
-     * @param block for transformation
-     * @param helper class for making the transformation
-     * @return corresponding AST object
-     */
-    public static <V> Phrase<V> jaxbToAst(Block block, Jaxb2ProgramAst<V> helper) {
-        List<Field> fields = Jaxb2Ast.extractFields(block, (short) 2);
-        String port = Jaxb2Ast.extractField(fields, BlocklyConstants.ACTORPORT);
-
-        return PlayRecordingAction.make(Jaxb2Ast.extractBlockProperties(block), Jaxb2Ast.extractComment(block), port);
-    }
-
-    @Override
-    public Block astToBlock() {
-        Block jaxbDestination = new Block();
-        Ast2Jaxb.setBasicProperties(this, jaxbDestination);
-        Ast2Jaxb.addField(jaxbDestination, BlocklyConstants.ACTORPORT, this.port);
-        return jaxbDestination;
     }
 }
