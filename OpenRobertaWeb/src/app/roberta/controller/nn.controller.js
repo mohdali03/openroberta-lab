@@ -10,14 +10,7 @@ import * as $ from 'jquery';
 import * as Blockly from 'blockly';
 import 'jquery-validate';
 
-var inputNeurons;
-var outputNeurons;
-
 function init() {
-    initEvents();
-}
-
-function initEvents() {
     $('#tabNN').onWrap(
         'show.bs.tab',
         function (e) {
@@ -29,34 +22,46 @@ function initEvents() {
     $('#tabNN').onWrap(
         'shown.bs.tab',
         function (e) {
-            extractInputOutputNeuronsFromNNstep();
-            PG.runPlayground(inputNeurons, outputNeurons);
-            PG.reset();
+            prepareNNfromNNstep();
         },
         'shown tabNN'
     );
 
-    $('#tabNN').onWrap('hide.bs.tab', function (e) {}, 'hide tabNN');
+    $('#tabNN').onWrap('hide.bs.tab', function (e) {
+        var nnstepBlock = getTheNNstepBlock();
+        nnstepBlock.data = PG.getStateAsJSONString();
+    }, 'hide tabNN');
 
     $('#tabNN').onWrap('hidden.bs.tab', function (e) {}, 'hidden tabNN');
 }
 
-function extractInputOutputNeuronsFromNNstep() {
-    inputNeurons = [];
-    outputNeurons = [];
-    var stepBlockFound = false;
-    for (const block of Blockly.Workspace.getByContainer('blocklyDiv').getAllBlocks()) {
-        if (block.type === 'robActions_NNstep') {
-            if (stepBlockFound) {
-                LOG.error("more than one NNstep block makes no sense");
-            }
-            stepBlockFound = true;
-            extractInputOutputNeurons(block.getChildren());
-        }
-    }
+function prepareNNfromNNstep() {
+    var inputNeurons = [];
+    var outputNeurons = [];
+    var nnStepBlock = getTheNNstepBlock();
+    var state = nnStepBlock.data === undefined ? undefined : JSON.parse(nnStepBlock.data);
+    extractInputOutputNeurons(inputNeurons, outputNeurons, nnStepBlock.getChildren());
+    PG.runPlayground(state, inputNeurons, outputNeurons);
 }
 
-function extractInputOutputNeurons(neurons) {
+function getTheNNstepBlock() {
+    var nnstepBlock = null;
+    for (const block of Blockly.Workspace.getByContainer('blocklyDiv').getAllBlocks()) {
+        if (block.type === 'robActions_NNstep') {
+            if (nnstepBlock) {
+                LOG.error("more than one NNstep block makes no sense");
+            }
+            nnstepBlock = block;
+        }
+    }
+    return nnstepBlock;
+}
+
+function extractInputOutputNeuronsFromNNstep(inputNeurons, outputNeurons, ) {
+    extractInputOutputNeurons(getTheNNstepBlock().getChildren());
+}
+
+function extractInputOutputNeurons(inputNeurons, outputNeurons, neurons) {
     for (const block of neurons) {
         if (block.type === 'robActions_inputneuron') {
             inputNeurons.push(block.getFieldValue("NAME"));
@@ -65,7 +70,7 @@ function extractInputOutputNeurons(neurons) {
         }
         var next = block.getChildren();
         if (next) {
-            extractInputOutputNeurons(next);
+            extractInputOutputNeurons(inputNeurons, outputNeurons, next);
         }
     }
 }

@@ -454,9 +454,9 @@ export function reset() {
     // Make a simple network.
     let shape = [state.numInputs].concat(state.networkShape).concat([state.numOutputs]);
     let outputActivation = nn.Activations.LINEAR; // was: TANH;
-    let oldWeights: number[][][] = extractWeights(network);
     network = nn.buildNetwork(shape, state.activation, outputActivation, state.regularization, state.inputs, state.outputs, state.initZero);
-    replaceWeights(network, oldWeights);
+    replaceWeights(network, state.weights);
+    replaceBiases(network, state.biases);
     drawNetwork(network);
     updateUI(true);
 }
@@ -477,6 +477,20 @@ function extractWeights(network: nn.Node[][]): number[][][] {
         }
     }
     return weightsAllLayers;
+}
+
+function extractBiases(network: nn.Node[][]): number[][] {
+    let biasesAllLayers: number[][] = [];
+    if (network != null && network.length > 0) {
+        for (let layer of network) {
+            let biasesOneLayer: number[] = [];
+            for (let node of layer) {
+                biasesOneLayer.push(node.bias);
+            }
+            biasesAllLayers.push(biasesOneLayer);
+        }
+    }
+    return biasesAllLayers;
 }
 
 function replaceWeights(network: nn.Node[][], weightsAllLayers: number[][][]): void {
@@ -506,8 +520,29 @@ function replaceWeights(network: nn.Node[][], weightsAllLayers: number[][][]): v
     }
 }
 
-export function runPlayground(inputNeurons: string[], outputNeurons: string[]) {
-    state.setInputOutputNeurons(inputNeurons, outputNeurons);
+function replaceBiases(network: nn.Node[][], biasesAllLayers: number[][]): void {
+    if (network != null && network.length > 0 && biasesAllLayers != null) {
+        for (let i = 0; i < biasesAllLayers.length && i < network.length; i += 1) {
+            let layer = network[i];
+            let layerBiases = biasesAllLayers[i];
+            if (layer == null || layerBiases == null) {
+                break;
+            }
+            for (let j = 0; j < layerBiases.length && j < layer.length; j += 1) {
+                let node = layer[j];
+                let nodeBias = layerBiases[j];
+                if (node == null || nodeBias == null) {
+                    break;
+                }
+                node.bias = nodeBias;
+            }
+        }
+    }
+}
+
+export function runPlayground(stateFromNNstep: any, inputNeurons: string[], outputNeurons: string[]) {
+    state = new State();
+    state.setFromJson(stateFromNNstep, inputNeurons, outputNeurons);
     makeGUI();
     reset();
 }
@@ -521,4 +556,10 @@ export function oneStep(inputData: number[]): number[] {
         outputData.push(node.output);
     }
     return outputData;
+}
+
+export function getStateAsJSONString() : String {
+    state.weights = extractWeights(network);
+    state.biases = extractBiases(network);
+    return JSON.stringify(state);
 }

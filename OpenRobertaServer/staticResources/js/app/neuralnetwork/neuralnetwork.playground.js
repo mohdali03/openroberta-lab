@@ -5,7 +5,7 @@
  */
 define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3"], function (require, exports, nn, neuralnetwork_state_1, d3) {
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.oneStep = exports.runPlayground = exports.reset = void 0;
+    exports.getStateAsJSONString = exports.oneStep = exports.runPlayground = exports.reset = void 0;
     var mainWidth;
     var RECT_SIZE = 30;
     var SPACE_BETWEEN_NODES = 90;
@@ -407,9 +407,9 @@ define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3
         // Make a simple network.
         var shape = [state.numInputs].concat(state.networkShape).concat([state.numOutputs]);
         var outputActivation = nn.Activations.LINEAR; // was: TANH;
-        var oldWeights = extractWeights(network);
         network = nn.buildNetwork(shape, state.activation, outputActivation, state.regularization, state.inputs, state.outputs, state.initZero);
-        replaceWeights(network, oldWeights);
+        replaceWeights(network, state.weights);
+        replaceBiases(network, state.biases);
         drawNetwork(network);
         updateUI(true);
     }
@@ -433,6 +433,21 @@ define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3
             }
         }
         return weightsAllLayers;
+    }
+    function extractBiases(network) {
+        var biasesAllLayers = [];
+        if (network != null && network.length > 0) {
+            for (var _i = 0, network_2 = network; _i < network_2.length; _i++) {
+                var layer = network_2[_i];
+                var biasesOneLayer = [];
+                for (var _a = 0, layer_2 = layer; _a < layer_2.length; _a++) {
+                    var node = layer_2[_a];
+                    biasesOneLayer.push(node.bias);
+                }
+                biasesAllLayers.push(biasesOneLayer);
+            }
+        }
+        return biasesAllLayers;
     }
     function replaceWeights(network, weightsAllLayers) {
         if (network != null && network.length > 0 && weightsAllLayers != null) {
@@ -460,8 +475,28 @@ define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3
             }
         }
     }
-    function runPlayground(inputNeurons, outputNeurons) {
-        state.setInputOutputNeurons(inputNeurons, outputNeurons);
+    function replaceBiases(network, biasesAllLayers) {
+        if (network != null && network.length > 0 && biasesAllLayers != null) {
+            for (var i = 0; i < biasesAllLayers.length && i < network.length; i += 1) {
+                var layer = network[i];
+                var layerBiases = biasesAllLayers[i];
+                if (layer == null || layerBiases == null) {
+                    break;
+                }
+                for (var j = 0; j < layerBiases.length && j < layer.length; j += 1) {
+                    var node = layer[j];
+                    var nodeBias = layerBiases[j];
+                    if (node == null || nodeBias == null) {
+                        break;
+                    }
+                    node.bias = nodeBias;
+                }
+            }
+        }
+    }
+    function runPlayground(stateFromNNstep, inputNeurons, outputNeurons) {
+        state = new neuralnetwork_state_1.State();
+        state.setFromJson(stateFromNNstep, inputNeurons, outputNeurons);
         makeGUI();
         reset();
     }
@@ -477,4 +512,10 @@ define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3
         return outputData;
     }
     exports.oneStep = oneStep;
+    function getStateAsJSONString() {
+        state.weights = extractWeights(network);
+        state.biases = extractBiases(network);
+        return JSON.stringify(state);
+    }
+    exports.getStateAsJSONString = getStateAsJSONString;
 });

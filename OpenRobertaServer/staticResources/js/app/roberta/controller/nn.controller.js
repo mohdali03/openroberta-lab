@@ -1,40 +1,45 @@
 define(["require", "exports", "log", "guiState.controller", "neuralnetwork.playground", "jquery", "blockly", "jquery-validate"], function (require, exports, LOG, GUISTATE_C, PG, $, Blockly) {
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.resetView = exports.reloadView = exports.reloadNN = exports.getBricklyWorkspace = exports.showNN = exports.newNN = exports.showSaveAsModal = exports.loadFromListing = exports.saveAsToServer = exports.saveToServer = exports.initNNForms = exports.init = void 0;
-    var inputNeurons;
-    var outputNeurons;
     function init() {
-        initEvents();
-    }
-    exports.init = init;
-    function initEvents() {
         $('#tabNN').onWrap('show.bs.tab', function (e) {
             GUISTATE_C.setView('tabNN');
         }, 'show tabNN');
         $('#tabNN').onWrap('shown.bs.tab', function (e) {
-            extractInputOutputNeuronsFromNNstep();
-            PG.runPlayground(inputNeurons, outputNeurons);
-            PG.reset();
+            prepareNNfromNNstep();
         }, 'shown tabNN');
-        $('#tabNN').onWrap('hide.bs.tab', function (e) { }, 'hide tabNN');
+        $('#tabNN').onWrap('hide.bs.tab', function (e) {
+            var nnstepBlock = getTheNNstepBlock();
+            nnstepBlock.data = PG.getStateAsJSONString();
+        }, 'hide tabNN');
         $('#tabNN').onWrap('hidden.bs.tab', function (e) { }, 'hidden tabNN');
     }
-    function extractInputOutputNeuronsFromNNstep() {
-        inputNeurons = [];
-        outputNeurons = [];
-        var stepBlockFound = false;
+    exports.init = init;
+    function prepareNNfromNNstep() {
+        var inputNeurons = [];
+        var outputNeurons = [];
+        var nnStepBlock = getTheNNstepBlock();
+        var state = nnStepBlock.data === undefined ? undefined : JSON.parse(nnStepBlock.data);
+        extractInputOutputNeurons(inputNeurons, outputNeurons, nnStepBlock.getChildren());
+        PG.runPlayground(state, inputNeurons, outputNeurons);
+    }
+    function getTheNNstepBlock() {
+        var nnstepBlock = null;
         for (var _i = 0, _a = Blockly.Workspace.getByContainer('blocklyDiv').getAllBlocks(); _i < _a.length; _i++) {
             var block = _a[_i];
             if (block.type === 'robActions_NNstep') {
-                if (stepBlockFound) {
+                if (nnstepBlock) {
                     LOG.error("more than one NNstep block makes no sense");
                 }
-                stepBlockFound = true;
-                extractInputOutputNeurons(block.getChildren());
+                nnstepBlock = block;
             }
         }
+        return nnstepBlock;
     }
-    function extractInputOutputNeurons(neurons) {
+    function extractInputOutputNeuronsFromNNstep(inputNeurons, outputNeurons) {
+        extractInputOutputNeurons(getTheNNstepBlock().getChildren());
+    }
+    function extractInputOutputNeurons(inputNeurons, outputNeurons, neurons) {
         for (var _i = 0, neurons_1 = neurons; _i < neurons_1.length; _i++) {
             var block = neurons_1[_i];
             if (block.type === 'robActions_inputneuron') {
@@ -45,7 +50,7 @@ define(["require", "exports", "log", "guiState.controller", "neuralnetwork.playg
             }
             var next = block.getChildren();
             if (next) {
-                extractInputOutputNeurons(next);
+                extractInputOutputNeurons(inputNeurons, outputNeurons, next);
             }
         }
     }

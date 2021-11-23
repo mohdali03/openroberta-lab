@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import de.fhg.iais.roberta.blockly.generated.Block;
+import de.fhg.iais.roberta.blockly.generated.Data;
 import de.fhg.iais.roberta.blockly.generated.Statement;
 import de.fhg.iais.roberta.blockly.generated.Value;
 import de.fhg.iais.roberta.syntax.BlockTypeContainer;
@@ -25,11 +26,12 @@ import de.fhg.iais.roberta.util.dbc.Assert;
  * This class represents the <b>nnStep</b> block from Blockly in the AST. An object of this class will generate a nnStep statement.<br/>
  */
 public class NNStepStmt<V> extends Stmt<V> {
-
+    private final Data netDefinition;
     private final StmtList<V> ioNeurons;
 
-    private NNStepStmt(StmtList<V> ioNeurons, BlocklyBlockProperties properties, BlocklyComment comment) {
+    private NNStepStmt(Data netDefinition, StmtList<V> ioNeurons, BlocklyBlockProperties properties, BlocklyComment comment) {
         super(BlockTypeContainer.getByName("NNSTEP_STMT"), properties, comment);
+        this.netDefinition = netDefinition;
         this.ioNeurons = ioNeurons;
         setReadOnly();
     }
@@ -39,8 +41,12 @@ public class NNStepStmt<V> extends Stmt<V> {
      *
      * @return read only object of class {@link NNStepStmt}
      */
-    public static <V> NNStepStmt<V> make(StmtList<V> ioNeurons, BlocklyBlockProperties properties, BlocklyComment comment) {
-        return new NNStepStmt<>(ioNeurons, properties, comment);
+    public static <V> NNStepStmt<V> make(Data netDefinition, StmtList<V> ioNeurons, BlocklyBlockProperties properties, BlocklyComment comment) {
+        return new NNStepStmt<>(netDefinition, ioNeurons, properties, comment);
+    }
+
+    public Data getNetDefinition() {
+        return this.netDefinition;
     }
 
     public StmtList<V> getIoNeurons() {
@@ -82,14 +88,16 @@ public class NNStepStmt<V> extends Stmt<V> {
     public static <V> Phrase<V> jaxbToAst(Block block, Jaxb2ProgramAst<V> helper) {
         helper.getDropdownFactory();
         final List<Statement> ioNeuronsWrapped = block.getStatement();
+        final Data netDefinition = block.getData();
         final StmtList<V> ioNeurons = helper.extractStatement(ioNeuronsWrapped, "IONEURON");
-        return NNStepStmt.make(ioNeurons, Jaxb2Ast.extractBlockProperties(block), Jaxb2Ast.extractComment(block));
+        return NNStepStmt.make(netDefinition, ioNeurons, Jaxb2Ast.extractBlockProperties(block), Jaxb2Ast.extractComment(block));
     }
 
     @Override
     public Block astToBlock() {
         Block jaxbDestination = new Block();
         Ast2Jaxb.setBasicProperties(this, jaxbDestination);
+        jaxbDestination.setData(netDefinition);
         Ast2Jaxb.addStatement(jaxbDestination, "IONEURON", ioNeurons);
         return jaxbDestination;
     }
