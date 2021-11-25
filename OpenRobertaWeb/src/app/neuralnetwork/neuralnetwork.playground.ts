@@ -451,14 +451,17 @@ export function reset() {
     d3.select('#layers-label').text('Hidden layer' + suffix);
     d3.select('#num-layers').text(state.numHiddenLayers);
 
-    // Make a simple network.
+    makeSimpleNetwork();
+    drawNetwork(network);
+    updateUI(true);
+}
+
+export function makeSimpleNetwork() {
     let shape = [state.numInputs].concat(state.networkShape).concat([state.numOutputs]);
     let outputActivation = nn.Activations.LINEAR; // was: TANH;
     network = nn.buildNetwork(shape, state.activation, outputActivation, state.regularization, state.inputs, state.outputs, state.initZero);
     replaceWeights(network, state.weights);
     replaceBiases(network, state.biases);
-    drawNetwork(network);
-    updateUI(true);
 }
 
 function extractWeights(network: nn.Node[][]): number[][][] {
@@ -540,9 +543,13 @@ function replaceBiases(network: nn.Node[][], biasesAllLayers: number[][]): void 
     }
 }
 
-export function runPlayground(stateFromNNstep: any, inputNeurons: string[], outputNeurons: string[]) {
+export function setPlayground(stateFromNNstep: any, inputNeurons: string[], outputNeurons: string[]) {
     state = new State();
     state.setFromJson(stateFromNNstep, inputNeurons, outputNeurons);
+    makeSimpleNetwork();
+}
+
+export function runPlayground() {
     makeGUI();
     reset();
 }
@@ -553,12 +560,12 @@ export function oneStep(inputData: number[]): number[] {
     let outputs = network[network.length - 1];
     for (let j = 0; j < outputs.length; j++) {
         let node = outputs[j];
-        outputData.push(node.output);
+        outputData.push(node.bias + node.output);
     }
     return outputData;
 }
 
-export function getStateAsJSONString() : String {
+export function getStateAsJSONString(): String {
     state.weights = extractWeights(network);
     state.biases = extractBiases(network);
     return JSON.stringify(state);

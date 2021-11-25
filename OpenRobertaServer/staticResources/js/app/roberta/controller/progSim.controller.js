@@ -1,4 +1,4 @@
-define(["require", "exports", "message", "util", "webots.simulation", "simulation.simulation", "simulation.constants", "guiState.controller", "tour.controller", "program.controller", "program.model", "blockly", "jquery", "jquery-validate"], function (require, exports, MSG, UTIL, NAOSIM, SIM, CONST, GUISTATE_C, TOUR_C, PROG_C, PROGRAM, Blockly, $) {
+define(["require", "exports", "message", "util", "webots.simulation", "simulation.simulation", "simulation.constants", "guiState.controller", "nn.controller", "tour.controller", "program.controller", "program.model", "blockly", "jquery", "jquery-validate"], function (require, exports, MSG, UTIL, NAOSIM, SIM, CONST, GUISTATE_C, NN_CTRL, TOUR_C, PROG_C, PROGRAM, Blockly, $) {
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.init = void 0;
     var INITIAL_WIDTH = 0.5;
@@ -68,7 +68,7 @@ define(["require", "exports", "message", "util", "webots.simulation", "simulatio
                                     setTimeout(function () {
                                         SIM.setPause(false);
                                     }, 500);
-                                    SIM.init([result], false, GUISTATE_C.getRobotGroup());
+                                    NN_CTRL.SIM.init([result], false, GUISTATE_C.getRobotGroup());
                                 }
                             }
                             else {
@@ -205,6 +205,7 @@ define(["require", "exports", "message", "util", "webots.simulation", "simulatio
         }, 'sim toggle background clicked');
     }
     function initSimulation(result) {
+        NN_CTRL.prepareNNfromNNstep();
         SIM.init([result], true, GUISTATE_C.getRobotGroup());
         $('#simControl').addClass('typcn-media-play-outline').removeClass('typcn-media-play');
         if (SIM.getNumRobots() === 1 && debug) {
@@ -285,6 +286,7 @@ define(["require", "exports", "message", "util", "webots.simulation", "simulatio
             var language = GUISTATE_C.getLanguage();
             PROGRAM.runInSim(GUISTATE_C.getProgramName(), configName, xmlTextProgram, xmlConfigText, language, function (result) {
                 if (result.rc == 'ok') {
+                    NN_CTRL.prepareNNfromNNstep();
                     setTimeout(function () {
                         SIM.setPause(false);
                         SIM.interpreterAddEvent(event);

@@ -5,7 +5,7 @@
  */
 define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3"], function (require, exports, nn, neuralnetwork_state_1, d3) {
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.getStateAsJSONString = exports.oneStep = exports.runPlayground = exports.reset = void 0;
+    exports.getStateAsJSONString = exports.oneStep = exports.runPlayground = exports.setPlayground = exports.makeSimpleNetwork = exports.reset = void 0;
     var mainWidth;
     var RECT_SIZE = 30;
     var SPACE_BETWEEN_NODES = 90;
@@ -404,16 +404,19 @@ define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3
         var suffix = state.numHiddenLayers !== 1 ? 's' : '';
         d3.select('#layers-label').text('Hidden layer' + suffix);
         d3.select('#num-layers').text(state.numHiddenLayers);
-        // Make a simple network.
+        makeSimpleNetwork();
+        drawNetwork(network);
+        updateUI(true);
+    }
+    exports.reset = reset;
+    function makeSimpleNetwork() {
         var shape = [state.numInputs].concat(state.networkShape).concat([state.numOutputs]);
         var outputActivation = nn.Activations.LINEAR; // was: TANH;
         network = nn.buildNetwork(shape, state.activation, outputActivation, state.regularization, state.inputs, state.outputs, state.initZero);
         replaceWeights(network, state.weights);
         replaceBiases(network, state.biases);
-        drawNetwork(network);
-        updateUI(true);
     }
-    exports.reset = reset;
+    exports.makeSimpleNetwork = makeSimpleNetwork;
     function extractWeights(network) {
         var weightsAllLayers = [];
         if (network != null && network.length > 0) {
@@ -494,9 +497,13 @@ define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3
             }
         }
     }
-    function runPlayground(stateFromNNstep, inputNeurons, outputNeurons) {
+    function setPlayground(stateFromNNstep, inputNeurons, outputNeurons) {
         state = new neuralnetwork_state_1.State();
         state.setFromJson(stateFromNNstep, inputNeurons, outputNeurons);
+        makeSimpleNetwork();
+    }
+    exports.setPlayground = setPlayground;
+    function runPlayground() {
         makeGUI();
         reset();
     }
@@ -507,7 +514,7 @@ define(["require", "exports", "./neuralnetwork.nn", "./neuralnetwork.state", "d3
         var outputs = network[network.length - 1];
         for (var j = 0; j < outputs.length; j++) {
             var node = outputs[j];
-            outputData.push(node.output);
+            outputData.push(node.bias + node.output);
         }
         return outputData;
     }

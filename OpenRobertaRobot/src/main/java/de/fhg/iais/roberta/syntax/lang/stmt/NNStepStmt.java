@@ -1,26 +1,23 @@
 package de.fhg.iais.roberta.syntax.lang.stmt;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import de.fhg.iais.roberta.blockly.generated.Block;
 import de.fhg.iais.roberta.blockly.generated.Data;
 import de.fhg.iais.roberta.blockly.generated.Statement;
-import de.fhg.iais.roberta.blockly.generated.Value;
 import de.fhg.iais.roberta.syntax.BlockTypeContainer;
 import de.fhg.iais.roberta.syntax.BlocklyBlockProperties;
 import de.fhg.iais.roberta.syntax.BlocklyComment;
-import de.fhg.iais.roberta.syntax.BlocklyConstants;
 import de.fhg.iais.roberta.syntax.Phrase;
-import de.fhg.iais.roberta.syntax.lang.expr.Expr;
-import de.fhg.iais.roberta.syntax.lang.expr.Var;
 import de.fhg.iais.roberta.transformer.Ast2Jaxb;
-import de.fhg.iais.roberta.transformer.ExprParam;
 import de.fhg.iais.roberta.transformer.Jaxb2Ast;
 import de.fhg.iais.roberta.transformer.Jaxb2ProgramAst;
-import de.fhg.iais.roberta.typecheck.BlocklyType;
-import de.fhg.iais.roberta.util.dbc.Assert;
+import de.fhg.iais.roberta.typecheck.NepoInfo;
+import de.fhg.iais.roberta.util.Util;
+import de.fhg.iais.roberta.util.dbc.DbcException;
 
 /**
  * This class represents the <b>nnStep</b> block from Blockly in the AST. An object of this class will generate a nnStep statement.<br/>
@@ -56,7 +53,7 @@ public class NNStepStmt<V> extends Stmt<V> {
     public List<Stmt<V>> getInputNeurons() {
         final List<Stmt<V>> inputNeurons = new ArrayList<>();
         for ( Stmt<V> ioNeuron : ioNeurons.get() ) {
-            if (ioNeuron.getKind().getName().equals("NN_INPUT_NEURON_STMT")) {
+            if ( ioNeuron.getKind().getName().equals("NN_INPUT_NEURON_STMT") ) {
                 inputNeurons.add(ioNeuron);
             }
         }
@@ -66,7 +63,7 @@ public class NNStepStmt<V> extends Stmt<V> {
     public List<Stmt<V>> getOutputNeurons() {
         final List<Stmt<V>> outputNeurons = new ArrayList<>();
         for ( Stmt<V> ioNeuron : ioNeurons.get() ) {
-            if (ioNeuron.getKind().getName().equals("NN_OUTPUT_NEURON_STMT")) {
+            if ( ioNeuron.getKind().getName().equals("NN_OUTPUT_NEURON_STMT") ) {
                 outputNeurons.add(ioNeuron);
             }
         }
