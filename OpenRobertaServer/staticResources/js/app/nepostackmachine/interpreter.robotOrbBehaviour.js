@@ -15,8 +15,8 @@ define(["require", "exports", "./interpreter.aRobotBehaviour", "./interpreter.co
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.RobotOrbBehaviour = void 0;
     var driveConfig = {
-        motorL: { port: 1, orientation: 1 },
-        motorR: { port: 2, orientation: 1 },
+        motorL: { port: 2, orientation: 1 },
+        motorR: { port: 3, orientation: 1 },
         orientation: [1, 1, 1, 1],
         wheelDiameter: 5.6,
         trackWidth: 22.8,
@@ -73,7 +73,7 @@ define(["require", "exports", "./interpreter.aRobotBehaviour", "./interpreter.co
             ],
         },
     };
-    var resetVlueEncoder = {
+    var resetValueEncoder = {
         Motor: [
             { reset: 0 },
             { reset: 0 },
@@ -189,7 +189,7 @@ define(["require", "exports", "./interpreter.aRobotBehaviour", "./interpreter.co
         return 0;
     }
     function getEncoderValue(port, mode) {
-        var value = getMotorPos(port) - resetVlueEncoder.Motor[port].reset;
+        var value = getMotorPos(port) - resetValueEncoder.Motor[port].reset;
         if (mode == 'degree') {
             return (value / 2.7);
         }
@@ -611,11 +611,15 @@ define(["require", "exports", "./interpreter.aRobotBehaviour", "./interpreter.co
             return 0;
         };
         RobotOrbBehaviour.prototype.setConfiguration = function (configuration) {
-            driveConfig.trackWidth = configuration.TRACKWIDTH;
-            driveConfig.wheelDiameter = configuration.WHEELDIAMETER;
+            driveConfig.trackWidth = configuration.ACTUATORS.Diff.BRICK_TRACK_WIDTH;
+            driveConfig.wheelDiameter = configuration.ACTUATORS.Diff.WHEELDIAMETER;
             if (driveConfig.wheelDiameter != 0) {
                 driveConfig.distanceToTics = 1000.0 / (10.0 * driveConfig.wheelDiameter * Math.PI);
             }
+            var x = configuration.ACTUATORS;
+            var y = x[0];
+            var a = configuration.ACTUATORS.Diff;
+            var b = a[1];
             this.setConfigMotors(configuration.ACTUATORS);
             this.setConfigSensors(configuration.SENSORS);
             this.wait(3);
@@ -683,7 +687,7 @@ define(["require", "exports", "./interpreter.aRobotBehaviour", "./interpreter.co
         };
         RobotOrbBehaviour.prototype.encoderReset = function (port) {
             U.debug('encoderReset for ' + port);
-            resetVlueEncoder.Motor[this.mappPortMotor(port)].reset = getMotorPos(this.mappPortMotor(port));
+            resetValueEncoder.Motor[this.mappPortMotor(port)].reset = getMotorPos(this.mappPortMotor(port));
         };
         RobotOrbBehaviour.prototype.gyroReset = function (port) {
             U.debug('gyroReset for ' + port);

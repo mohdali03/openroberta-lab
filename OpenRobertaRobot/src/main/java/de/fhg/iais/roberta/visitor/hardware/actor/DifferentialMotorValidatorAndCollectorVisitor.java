@@ -57,6 +57,51 @@ public class DifferentialMotorValidatorAndCollectorVisitor extends MotorValidato
         return null;
     }
 
+    public Void visitCurveActionForDiff(CurveAction<Void> curveAction) {
+        requiredComponentVisited(curveAction, curveAction.getParamLeft().getSpeed(), curveAction.getParamRight().getSpeed());
+        Optional.ofNullable(curveAction.getParamLeft().getDuration())
+            .ifPresent(duration -> requiredComponentVisited(curveAction, duration.getValue()));
+        Optional.ofNullable(curveAction.getParamRight().getDuration())
+            .ifPresent(duration -> requiredComponentVisited(curveAction, duration.getValue()));
+        checkForZeroSpeedInCurve(curveAction.getParamLeft().getSpeed(), curveAction.getParamRight().getSpeed(), curveAction);
+        checkAndAddLeftRightMotorPortForDiff(curveAction);
+        return null;
+    }
+
+    public Void visitTurnActionForDiff(TurnAction<Void> turnAction){
+        checkAndVisitMotionParam(turnAction, turnAction.getParam());
+        checkAndAddLeftRightMotorPortForDiff(turnAction);
+        return null;
+    }
+
+    public Void visitDriveActionForDiff(DriveAction<Void> driveAction){
+        checkAndVisitMotionParam(driveAction, driveAction.getParam());
+        checkAndAddLeftRightMotorPortForDiff(driveAction);
+        return null;
+    }
+
+    private boolean checkPortsForDiff(Phrase<Void> driveAction){
+        String leftMotor = robotConfiguration.getConfigurationComponent("Diff").getOptProperty("MOTOR_L");
+        String rightMotor = robotConfiguration.getConfigurationComponent("Diff").getOptProperty("MOTOR_R");
+        if (rightMotor.equals(leftMotor)){
+            addErrorToPhrase(driveAction, "CONFIGURATION_ERROR_MULTIPLE_RIGHT_MOTORS");
+            return true;
+        }
+        return false;
+    }
+
+    private void checkAndAddLeftRightMotorPortForDiff(Phrase<Void> driveAction){
+        ConfigurationComponent differentialDrive = robotConfiguration.getConfigurationComponent("Diff");
+        if (differentialDrive == null){
+            addErrorToPhrase(driveAction, "CONFIGURATION_ERROR_MOTOR_LEFT_MISSING");
+        }
+        if ( checkPortsForDiff(driveAction) ) {
+            return;
+        }
+        usedHardwareBuilder.addUsedActor(new UsedActor(robotConfiguration.getConfigurationComponent("Diff").getOptProperty("MOTOR_L"), SC.LARGE));
+        usedHardwareBuilder.addUsedActor(new UsedActor(robotConfiguration.getConfigurationComponent("Diff").getOptProperty("MOTOR_R"), SC.LARGE));
+    }
+
     @Override
     public Void visitMotorDriveStopAction(MotorDriveStopAction<Void> stopAction) {
         checkLeftRightMotorPort(stopAction);

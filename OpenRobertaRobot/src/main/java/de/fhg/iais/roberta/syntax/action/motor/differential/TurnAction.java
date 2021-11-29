@@ -87,7 +87,7 @@ public class TurnAction<V> extends Action<V> {
         List<Value> values;
         MotionParam<V> mp;
         BlocklyDropdownFactory factory = helper.getDropdownFactory();
-        fields = Jaxb2Ast.extractFields(block, (short) 1);
+        fields = Jaxb2Ast.extractFields(block, (short) 2);
         mode = Jaxb2Ast.extractField(fields, BlocklyConstants.DIRECTION);
 
         if ( block.getType().equals(BlocklyConstants.ROB_ACTIONS_MOTOR_DIFF_TURN) ) {

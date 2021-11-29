@@ -10,7 +10,7 @@
 				</value>
 			</block>
 			<block type="robActions_motor_on_for">
-				<field name="MOTORPORT">B</field>
+				<field name="MOTORPORT">M</field>
 				<value name="POWER">
 					<block type="math_number">
 						<field name="NUM">30</field>
@@ -23,10 +23,10 @@
 				</value>
 			</block>
 			<block type="robActions_motor_getPower">
-				<field name="MOTORPORT">B</field>
+				<field name="MOTORPORT">M</field>
 			</block>
 			<block type="robActions_motor_setPower">
-				<field name="MOTORPORT">B</field>
+				<field name="MOTORPORT">M</field>
 				<value name="POWER">
 					<block type="math_number">
 						<field name="NUM">30</field>
@@ -34,7 +34,7 @@
 				</value>
 			</block>
 			<block type="robActions_motor_stop">
-				<field name="MOTORPORT">B</field>
+				<field name="MOTORPORT">M</field>
 			</block>
 		</category>
 		<category name="TOOLBOX_DRIVE" svg="true">
@@ -129,27 +129,13 @@
 	</category>
 	<category name="TOOLBOX_SENSOR" svg="true">
 		<block type="robSensors_touch_getSample" />
-		<block type="robSensors_ultrasonic_getSample">
-			<field name="SENSORPORT">4</field>
-		</block>
-		<block type="robSensors_colour_getSample">
-			<field name="SENSORPORT">3</field>
-		</block>
-		<block type="robSensors_infrared_getSample">
-			<field name="SENSORPORT">4</field>
-		</block>
-		<block type="robSensors_encoder_reset">
-			<field name="SENSORPORT">B</field>
-		</block>
-		<block type="robSensors_encoder_getSample">
-			<field name="SENSORPORT">B</field>
-		</block>
-		<block type="robSensors_gyro_reset">
-			<field name="SENSORPORT">2</field>
-		</block>
-		<block type="robSensors_gyro_getSample">
-			<field name="SENSORPORT">2</field>
-		</block>
+		<block type="robSensors_ultrasonic_getSample"/>
+		<block type="robSensors_colour_getSample"/>
+		<block type="robSensors_infrared_getSample"/>
+		<block type="robSensors_encoder_reset"/>
+		<block type="robSensors_encoder_getSample"/>
+		<block type="robSensors_gyro_reset"/>
+		<block type="robSensors_gyro_getSample"/>
 		<block type="robSensors_timer_getSample" />
 		<block type="robSensors_timer_reset" />
 	</category>

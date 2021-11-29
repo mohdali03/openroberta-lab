@@ -4,8 +4,8 @@ import * as C from './interpreter.constants';
 import * as U from './interpreter.util';
 
 var driveConfig = {
-    motorL: { port: 1, orientation: 1 },
-    motorR: { port: 2, orientation: 1 },
+    motorL: { port: 2, orientation: 1 },
+    motorR: { port: 3, orientation: 1 },
     orientation: [1, 1, 1, 1],
     wheelDiameter: 5.6,
     trackWidth: 22.8,
@@ -65,7 +65,7 @@ let cmdPropToORB = {
     },
 };
 
-let resetVlueEncoder = {
+let resetValueEncoder = {
     Motor : [
         {reset: 0},
         {reset: 0},
@@ -183,7 +183,7 @@ function getSensorValueTouch(id: number) {
 }
 
 function getEncoderValue(port: number, mode: any) {
-    var value = getMotorPos(port) - resetVlueEncoder.Motor[port].reset
+    var value = getMotorPos(port) - resetValueEncoder.Motor[port].reset
     if (mode == 'degree') {
         return (value / 2.7);
     }
@@ -626,11 +626,16 @@ export class RobotOrbBehaviour extends ARobotBehaviour {
     }
 
     public setConfiguration(configuration: any) {
-        driveConfig.trackWidth = configuration.TRACKWIDTH;
-        driveConfig.wheelDiameter = configuration.WHEELDIAMETER;
+        driveConfig.trackWidth = configuration.ACTUATORS.Diff.BRICK_TRACK_WIDTH;
+        driveConfig.wheelDiameter = configuration.ACTUATORS.Diff.WHEELDIAMETER;
         if (driveConfig.wheelDiameter != 0) {
             driveConfig.distanceToTics = 1000.0 / (10.0 * driveConfig.wheelDiameter * Math.PI);
         }
+
+        let x = configuration.ACTUATORS;
+        let y = x[0];
+        var a = configuration.ACTUATORS.Diff;
+        var b = a[1];
 
         this.setConfigMotors(configuration.ACTUATORS);
         this.setConfigSensors(configuration.SENSORS);
@@ -704,7 +709,7 @@ export class RobotOrbBehaviour extends ARobotBehaviour {
 
     public encoderReset(port: any): void {
         U.debug('encoderReset for ' + port);
-        resetVlueEncoder.Motor[this.mappPortMotor(port)].reset = getMotorPos(this.mappPortMotor(port))
+        resetValueEncoder.Motor[this.mappPortMotor(port)].reset = getMotorPos(this.mappPortMotor(port))
     }
 
     public gyroReset(port: number): void {
